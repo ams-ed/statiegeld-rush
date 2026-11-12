@@ -2,35 +2,73 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Statiegeld Rush</title>
 <link rel="icon" href="data:,">
 <style>
+  :root { --target-size: 24px; }
+  @media (pointer: coarse) {
+    :root { --target-size: 44px; }
+  }
+  :where(button, [role="button"]) {
+    min-block-size: var(--target-size);
+    min-inline-size: var(--target-size);
+  }
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #262932;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     user-select: none; -webkit-user-select: none;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    overflow-wrap: anywhere;
   }
-  canvas { display: block; width: 100vw; height: 100vh; }
+  canvas {
+    display: block; width: 100vw; height: 100vh;
+    width: 100dvw; height: 100dvh;
+    touch-action: none;
+  }
+  h1, h2 { text-wrap: balance; }
+  p, .upg-desc { text-wrap: pretty; }
 
-  /* Minimal title + 1-line controls + Gear Shop pill */
+  /* Minimal title + 1-line controls + loading bar + Gear Shop pill */
   #titleOverlay {
     position: fixed; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: flex-end; padding-bottom: 8.5vh;
+    align-items: center; justify-content: flex-end;
+    padding-bottom: max(7.5vh, calc(env(safe-area-inset-bottom, 0px) + 22px));
+    padding-bottom: max(7.5dvh, calc(env(safe-area-inset-bottom, 0px) + 22px));
+    padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
     pointer-events: none; transition: opacity 0.4s ease;
     background: radial-gradient(circle at 50% 58%, rgba(10,12,18,0.0) 35%, rgba(6,8,14,0.52) 100%);
-    z-index: 10;
+    z-index: 10; box-sizing: border-box;
   }
   #titleOverlay.hidden { opacity: 0; pointer-events: none !important; }
   #titleOverlay h1 {
-    margin: 0 0 10px 0; font-size: clamp(32px, 5vw, 62px); font-weight: 900;
-    letter-spacing: 0.06em; color: #f6f8fc;
+    margin: 0 0 10px 0; font-size: clamp(2rem, 1.2rem + 3.6vw, 3.875rem); font-weight: 900;
+    letter-spacing: 0.06em; color: #f6f8fc; text-align: center;
     text-shadow: 0 4px 0 #060403, 0 0 26px rgba(14, 195, 218, 0.55);
   }
   #titleOverlay p {
-    margin: 0 0 14px 0; font-size: clamp(13px, 1.4vw, 17px); font-weight: 700;
-    letter-spacing: 0.03em; color: rgba(240, 245, 255, 0.94);
+    margin: 0 0 14px 0; font-size: clamp(0.82rem, 0.72rem + 0.5vw, 1.0625rem); font-weight: 700;
+    letter-spacing: 0.03em; color: rgba(240, 245, 255, 0.94); text-align: center;
     text-shadow: 0 2px 0 #060403, 0 2px 10px rgba(0,0,0,0.85);
+  }
+  #loadWrap {
+    display: flex; flex-direction: column; align-items: center; gap: 7px; margin-bottom: 12px;
+  }
+  #loadWrap.done { display: none; }
+  .load-bar {
+    width: min(240px, 68vw); height: 12px; border-radius: 999px;
+    background: rgba(10, 13, 20, 0.86); border: 2.5px solid #060403;
+    box-shadow: 0 3px 0 #060403; overflow: hidden;
+  }
+  #loadFill {
+    width: 6%; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #0ec3da 0%, #ffdf38 100%);
+    transition: width 0.15s ease;
+  }
+  #loadLabel {
+    font-size: 12px; font-weight: 900; letter-spacing: 0.08em; color: #8ef4ff;
+    text-shadow: 0 2px 0 #060403;
   }
   #titleShopBtn {
     pointer-events: auto; cursor: pointer;
@@ -45,17 +83,21 @@
 
   /* Minimal corner HUD: Buzz Pill + Bag Cap (8/12) + Persistent Euro Wallet (€4.35) */
   #counter {
-    position: fixed; top: 18px; right: 24px; display: flex; align-items: center; gap: 18px;
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+    left: max(14px, env(safe-area-inset-left, 0px));
+    display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px 16px;
     pointer-events: none; opacity: 0; transition: opacity 0.35s ease; z-index: 8;
   }
   #counter.visible { opacity: 1; }
   .cnt-item {
-    display: flex; align-items: center; gap: 7px;
-    font-size: 23px; font-weight: 900; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; gap: 6px;
+    font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.44rem); font-weight: 900; font-variant-numeric: tabular-nums;
     color: #f7f9fc; text-shadow: 0 2.5px 0 #060403, 0 0 10px rgba(0,0,0,0.65);
   }
   .cnt-item img {
-    width: 28px; height: 28px; object-fit: contain;
+    width: 26px; height: 26px; aspect-ratio: 1 / 1; object-fit: contain;
     filter: drop-shadow(0 2px 0 #060403);
   }
   #heldVal, #walletVal { transition: transform 0.14s ease, color 0.2s ease; display: inline-block; }
@@ -120,21 +162,27 @@
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
     background: rgba(8, 10, 16, 0.72); backdrop-filter: blur(4px);
     opacity: 0; pointer-events: none; transition: opacity 0.28s ease; z-index: 20;
-    padding: 16px; box-sizing: border-box;
+    padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+    box-sizing: border-box;
   }
   #shopOverlay.open { opacity: 1; pointer-events: auto; }
   .shop-panel {
-    width: min(680px, 96vw); max-height: 92vh; overflow-y: auto;
+    width: min(680px, 100%);
+    max-height: 92vh;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)));
+    overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
+    container: shop / inline-size;
     background: #1a212d; border: 3.5px solid #060403; border-radius: 18px;
     box-shadow: 0 10px 0 #060403, 0 20px 50px rgba(0,0,0,0.75);
-    padding: 20px 22px; color: #f6f8fc; box-sizing: border-box;
+    padding: 18px 20px; color: #f6f8fc; box-sizing: border-box;
   }
   .shop-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 12px;
     border-bottom: 2.5px solid rgba(255,255,255,0.09); padding-bottom: 12px; margin-bottom: 14px;
   }
+  .shop-header > div:first-child { min-inline-size: 0; flex: 1 1 200px; }
   #runBanner {
-    font-size: clamp(20px, 3vw, 28px); font-weight: 900; letter-spacing: 0.04em;
+    font-size: clamp(1.25rem, 1rem + 1.5vw, 1.75rem); font-weight: 900; letter-spacing: 0.04em;
     text-shadow: 0 3px 0 #060403; margin: 0;
   }
   #runSub { margin: 4px 0 0 0; font-size: 13.5px; font-weight: 700; color: #a9b6ca; }
@@ -142,19 +190,23 @@
     display: flex; align-items: center; gap: 8px;
     background: #0f141d; border: 2.5px solid #060403; border-radius: 12px;
     padding: 7px 14px; box-shadow: 0 3px 0 #060403;
-    font-size: 22px; font-weight: 900; color: #ffe45c; font-variant-numeric: tabular-nums;
+    font-size: 20px; font-weight: 900; color: #ffe45c; font-variant-numeric: tabular-nums;
   }
-  .wallet-badge img { width: 26px; height: 26px; }
+  .wallet-badge img { width: 24px; height: 24px; aspect-ratio: 1 / 1; }
   .upg-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
   .upg-row {
-    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px 12px;
     background: #232c3b; border: 2.5px solid #060403; border-radius: 12px;
     padding: 10px 13px; box-shadow: 0 3px 0 #060403;
   }
+  .upg-row > div:first-child { min-inline-size: 0; }
   .upg-title { font-size: 15px; font-weight: 900; color: #f7f9fc; display: flex; align-items: center; gap: 8px; }
   .upg-key {
     font-size: 11px; font-weight: 900; background: #0f141d; color: #8ef4ff;
     padding: 1px 6px; border-radius: 5px; border: 1.5px solid #060403;
+  }
+  @media (pointer: coarse) {
+    .upg-key { display: none; }
   }
   .upg-desc { font-size: 12.5px; font-weight: 600; color: #b4c0d4; margin-top: 2px; }
   .upg-pips { display: flex; gap: 4px; }
@@ -175,21 +227,76 @@
     cursor: default; background: #2d3646; color: #6f7c91; box-shadow: none;
   }
   .upg-buy.maxed { background: #0ec3da; color: #060403; }
+  @container shop (inline-size < 31rem) {
+    .upg-row { grid-template-columns: 1fr auto; padding: 10px 11px; }
+    .upg-row > div:first-child { grid-column: 1 / -1; }
+    .upg-pips { justify-self: start; }
+    .upg-buy { justify-self: end; }
+  }
   .shop-footer {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 12px;
   }
   #resetSaveBtn {
-    cursor: pointer; background: transparent; border: none; color: #6e7b90;
-    font-size: 12px; font-weight: 700; text-decoration: underline; padding: 4px 6px;
+    position: relative; cursor: pointer; background: transparent; border: none; color: #8c9bb3;
+    font-size: 12.5px; font-weight: 700; text-decoration: underline; padding: 6px 8px;
   }
   #resetSaveBtn:hover { color: #ff6b7a; }
   #runAgainBtn {
-    cursor: pointer; padding: 11px 26px; border-radius: 12px;
+    cursor: pointer; padding: 11px 22px; border-radius: 12px; flex: 1 1 auto; max-width: 320px;
     background: #0ec3da; color: #060403; border: 3px solid #060403;
-    box-shadow: 0 4px 0 #060403; font-size: 16px; font-weight: 900; letter-spacing: 0.05em;
-    transition: transform 0.1s ease, background 0.15s ease;
+    box-shadow: 0 4px 0 #060403; font-size: 15.5px; font-weight: 900; letter-spacing: 0.05em;
+    transition: transform 0.1s ease, background 0.15s ease; margin-left: auto;
   }
   #runAgainBtn:hover { background: #5eeeff; transform: translateY(-1px); }
+
+  /* Mobile Touch Controls (strictly hidden on desktop @media (pointer: fine)) */
+  #touchControls {
+    display: none;
+    position: fixed; inset: 0; pointer-events: none; z-index: 9;
+  }
+  @media (pointer: coarse) {
+    #touchControls.visible { display: block; }
+  }
+  .touch-actions {
+    position: absolute;
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+    pointer-events: auto;
+  }
+  .touch-btn {
+    cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
+    white-space: nowrap; overflow-wrap: normal;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 3px solid #060403; box-shadow: 0 4px 0 #060403, 0 6px 18px rgba(0,0,0,0.45);
+    font-family: inherit; font-weight: 900; letter-spacing: 0.05em; color: #f6f8fc;
+    transition: transform 0.06s ease, background 0.12s ease;
+  }
+  .touch-btn:active, .touch-btn.pressed {
+    transform: translateY(2px) scale(0.96);
+    box-shadow: 0 2px 0 #060403;
+  }
+  #btnHop {
+    width: 56px; height: 56px; border-radius: 999px;
+    background: rgba(23, 32, 46, 0.84); font-size: 12px; color: #8ef4ff;
+  }
+  #btnBash {
+    width: 82px; height: 82px; border-radius: 999px;
+    background: rgba(14, 195, 218, 0.88); color: #060403; font-size: 14px;
+  }
+  #btnBash .sub { font-size: 9.5px; font-weight: 900; letter-spacing: 0.04em; opacity: 0.86; margin-top: 1px; }
+  #btnBash.lock-near {
+    background: rgba(255, 223, 56, 0.94); color: #060403;
+  }
+  #steerPuck {
+    position: absolute; width: 54px; height: 54px; border-radius: 999px;
+    border: 2.5px solid rgba(142, 244, 255, 0.85);
+    background: rgba(14, 195, 218, 0.24);
+    box-shadow: 0 2px 0 #060403;
+    transform: translate(-50%, -50%);
+    opacity: 0; pointer-events: none; transition: opacity 0.12s ease;
+  }
+  #steerPuck.active { opacity: 1; }
 </style>
 <script type="importmap">
 { "imports": {
@@ -201,17 +308,32 @@
 <body>
 <div id="titleOverlay">
   <h1>STATIEGELD RUSH</h1>
-  <p>A / D weave &middot; W hop &middot; Tap Space bash &middot; Hold Space pick padlock &middot; R restart</p>
+  <div id="loadWrap">
+    <div class="load-bar"><div id="loadFill"></div></div>
+    <div id="loadLabel">LOADING CANAL STREET...</div>
+  </div>
+  <p id="titleHint">A / D weave &middot; W hop &middot; Tap Space bash &middot; Hold Space pick padlock &middot; R restart</p>
   <button id="titleShopBtn" type="button">[ TAB ] GEAR SHOP</button>
 </div>
 
 <div id="counter">
   <div class="buzz-wrap">
-    <span class="buzz-icon">&#9889;</span>
+    <span class="buzz-icon" aria-hidden="true">&#9889;</span>
     <div class="buzz-track" id="buzzTrack"><div id="buzzFill"></div></div>
   </div>
   <div class="cnt-item"><img src="assets/icon_can.png" alt=""><span id="heldVal">0/12</span></div>
   <div class="cnt-item"><img src="assets/sprite_coin_cutout.webp" alt=""><span id="walletVal">&euro;0.00</span></div>
+</div>
+
+<div id="touchControls">
+  <div id="steerPuck"></div>
+  <div class="touch-actions">
+    <button id="btnHop" class="touch-btn" type="button" aria-label="Hop obstacle">HOP</button>
+    <button id="btnBash" class="touch-btn" type="button" aria-label="Tap to bash unlocked bin or hold to pick padlock">
+      <span id="btnBashMain">BASH</span>
+      <span class="sub" id="btnBashSub">HOLD PICK</span>
+    </button>
+  </div>
 </div>
 
 <div id="lockpickHud">
@@ -288,10 +410,26 @@ const PALETTE = {
 };
 
 // ---------------------------------------------------------------------------
+// Device Tier Detection (PC keeps 100% desktop settings; mobile gets 60fps GPU tier)
+// ---------------------------------------------------------------------------
+const isCoarsePointer = () => matchMedia('(pointer: coarse)').matches;
+const IS_MOBILE_GPU = isCoarsePointer() && Math.min(window.screen?.width || innerWidth, window.screen?.height || innerHeight) < 960;
+let userHasInteracted = false;
+addEventListener('pointerdown', () => { userHasInteracted = true; }, { passive: true, once: true });
+addEventListener('keydown', () => { userHasInteracted = true; }, { passive: true, once: true });
+function haptic(pattern) {
+  try {
+    if (userHasInteracted && isCoarsePointer() && navigator.vibrate && navigator.userActivation?.isActive !== false) {
+      navigator.vibrate(pattern);
+    }
+  } catch (_) {}
+}
+
+// ---------------------------------------------------------------------------
 // Renderer, Scene, Lights & Post-Processing Stack
 // ---------------------------------------------------------------------------
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE_GPU ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.08;
@@ -310,7 +448,8 @@ scene.add(hemiLight);
 
 const moonDir = new THREE.DirectionalLight(0xdce6f7, 0.78);
 moonDir.castShadow = true;
-moonDir.shadow.mapSize.set(2048, 2048);
+const shadowRes = IS_MOBILE_GPU ? 1024 : 2048;
+moonDir.shadow.mapSize.set(shadowRes, shadowRes);
 moonDir.shadow.camera.near = 2;
 moonDir.shadow.camera.far = 95;
 moonDir.shadow.camera.left = -22;
@@ -320,8 +459,8 @@ moonDir.shadow.camera.bottom = -24;
 moonDir.shadow.bias = -0.0005;
 scene.add(moonDir, moonDir.target);
 
-// Pooled dynamic streetlights (nearest lamps + active Corner Market cyan glow)
-const warmLights = Array.from({ length: 5 }, () => {
+// Pooled dynamic streetlights (5 on PC, 2 on mobile GPU + active Corner Market cyan glow)
+const warmLights = Array.from({ length: IS_MOBILE_GPU ? 2 : 5 }, () => {
   const pl = new THREE.PointLight(0xffa84c, 6.2, 16, 1.65);
   scene.add(pl);
   return pl;
@@ -333,7 +472,11 @@ scene.add(heroRimLight);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.30, 0.52, 0.86);
+const bloomScale = IS_MOBILE_GPU ? 0.5 : 1.0;
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(Math.max(1, Math.round(innerWidth * bloomScale)), Math.max(1, Math.round(innerHeight * bloomScale))),
+  0.30, 0.52, 0.86
+);
 composer.addPass(bloomPass);
 
 // Unified Grade + Screen-Space Ink Accent + Buzz Vignette/Desat + Neon Turbo Radial Blur + Film Grain
@@ -696,6 +839,8 @@ const AudioSys = {
   }
 };
 addEventListener('pointerdown', () => AudioSys.unlock(), { passive: true });
+addEventListener('pointerup', () => AudioSys.unlock(), { passive: true });
+addEventListener('touchend', () => AudioSys.unlock(), { passive: true });
 addEventListener('keydown', () => AudioSys.unlock(), { passive: true });
 
 // ---------------------------------------------------------------------------
@@ -820,7 +965,7 @@ function buildRibbonStrip(z0, z1, xLeft, xRight, yLeft, yRight, uvScaleX, uvScal
 // ---------------------------------------------------------------------------
 // Rain Streaks (1 InstancedMesh draw call) & Pooled Particle Systems
 // ---------------------------------------------------------------------------
-const RAIN_N = 420;
+const RAIN_N = IS_MOBILE_GPU ? 220 : 420;
 const rainGeo = new THREE.PlaneGeometry(0.016, 0.62);
 const rainMat = new THREE.MeshBasicMaterial({
   color: 0x9fb4cc, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide,
@@ -1454,6 +1599,15 @@ let enterJustPressed = false;
 let tabJustPressed = false;
 let digitJustPressed = -1;
 
+// Mobile Pointer/Touch State (supports both 1-handed canvas gestures AND 2-thumb corner buttons!)
+let touchSteer = 0;
+let touchHopPulse = 0;
+let touchHoldBash = false;
+let btnBashHeld = false;
+let steerPtrId = null;
+let steerStartX = 0, steerStartY = 0, steerAnchorX = 0, steerStartTime = 0, steerMaxMove = 0, steerSwipedUp = false;
+let holdTimer = null;
+
 addEventListener('keydown', (e) => {
   if (!keys.has(e.code)) {
     if (e.code === 'Space') spaceJustPressed = true;
@@ -1475,7 +1629,7 @@ addEventListener('keyup', (e) => {
 });
 
 let prevPadBash = false, prevPadRestart = false;
-function readInput() {
+function readInput(dt = 0.016) {
   const pad = navigator.getGamepads?.()[0];
   const ax = pad ? pad.axes[0] : 0;
   const padBash = !!(pad?.buttons[0]?.pressed || pad?.buttons[2]?.pressed);
@@ -1488,13 +1642,16 @@ function readInput() {
   prevPadBash = padBash;
   prevPadRestart = padStart;
 
+  if (touchHopPulse > 0) touchHopPulse = Math.max(0, touchHopPulse - dt);
+
   const steer = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0)
               - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0)
-              + (Math.abs(ax) > 0.18 ? ax : 0);
+              + (Math.abs(ax) > 0.18 ? ax : 0)
+              + touchSteer;
   return {
     steer: THREE.MathUtils.clamp(steer, -1, 1),
-    hop: keys.has('KeyW') || keys.has('ArrowUp') || padHop,
-    bashHeld: keys.has('Space') || padBash,
+    hop: keys.has('KeyW') || keys.has('ArrowUp') || padHop || touchHopPulse > 0,
+    bashHeld: keys.has('Space') || padBash || touchHoldBash || btnBashHeld,
     bashDown: spaceJustPressed,
     bashUp: spaceJustReleased,
     start: enterJustPressed || padStart,
@@ -1508,12 +1665,22 @@ function readInput() {
 // Game State, HUD, Projected World Popups & Upgrade Shop UI
 // ---------------------------------------------------------------------------
 const titleEl = document.getElementById('titleOverlay');
+const titleHintEl = document.getElementById('titleHint');
+const loadWrapEl = document.getElementById('loadWrap');
+const loadFillEl = document.getElementById('loadFill');
+const loadLabelEl = document.getElementById('loadLabel');
 const titleShopBtn = document.getElementById('titleShopBtn');
 const counterEl = document.getElementById('counter');
 const heldEl = document.getElementById('heldVal');
 const walletEl = document.getElementById('walletVal');
 const buzzTrackEl = document.getElementById('buzzTrack');
 const buzzFillEl = document.getElementById('buzzFill');
+const touchControlsEl = document.getElementById('touchControls');
+const steerPuckEl = document.getElementById('steerPuck');
+const btnHopEl = document.getElementById('btnHop');
+const btnBashEl = document.getElementById('btnBash');
+const btnBashMainEl = document.getElementById('btnBashMain');
+const btnBashSubEl = document.getElementById('btnBashSub');
 const lockpickHudEl = document.getElementById('lockpickHud');
 const lockpickArcEl = document.getElementById('lockpickArc');
 const lockpickLabelEl = document.getElementById('lockpickLabel');
@@ -1626,12 +1793,12 @@ function renderShopUI() {
     }
     const lostMsg = S.lostCans > 0 ? ` \u00B7 Lost ${S.lostCans} unbanked can${S.lostCans === 1 ? '' : 's'}` : '';
     runSubEl.textContent = `Banked ${S.runBankedCans} cans (+${fmtEuro(S.runEarnedCents)})${lostMsg}`;
-    runAgainBtn.textContent = 'RUN AGAIN [ R / ENTER ]';
+    runAgainBtn.textContent = isCoarsePointer() ? 'RUN AGAIN' : 'RUN AGAIN [ R / ENTER ]';
   } else {
     runBannerEl.textContent = 'AMSTERDAM SCAVENGER SHOP';
     runBannerEl.style.color = '#8ef4ff';
     runSubEl.textContent = 'Bank cans at glowing Corner Markets to keep your Euros across runs!';
-    runAgainBtn.textContent = 'HIT THE STREET [ R / ENTER ]';
+    runAgainBtn.textContent = isCoarsePointer() ? 'HIT THE STREET' : 'HIT THE STREET [ R / ENTER ]';
   }
 
   upgListEl.innerHTML = '';
@@ -1723,18 +1890,179 @@ resetSaveBtn.addEventListener('click', (e) => {
   renderShopUI();
 });
 
+function clearTouchGestures() {
+  if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  steerPtrId = null;
+  touchSteer = 0;
+  touchHoldBash = false;
+  btnBashHeld = false;
+  steerPuckEl.classList.remove('active');
+  btnBashEl.classList.remove('pressed');
+  btnHopEl.classList.remove('pressed');
+}
+
 function updatePhaseUI() {
+  const coarse = isCoarsePointer();
+  titleHintEl.innerHTML = coarse
+    ? (S.ready
+        ? 'Tap to sprint &middot; Drag weave &middot; Swipe up HOP &middot; Tap BASH / Hold PICK'
+        : 'Preparing rainy Amsterdam canal street...')
+    : 'A / D weave &middot; W hop &middot; Tap Space bash &middot; Hold Space pick padlock &middot; R restart';
   if (S.phase === 'title') {
     titleEl.classList.remove('hidden');
     counterEl.classList.remove('visible');
-    titleShopBtn.textContent = `[ TAB ] GEAR SHOP (${fmtEuro(Save.walletCents)})`;
+    touchControlsEl.classList.remove('visible');
+    titleShopBtn.textContent = coarse
+      ? `GEAR SHOP (${fmtEuro(Save.walletCents)})`
+      : `[ TAB ] GEAR SHOP (${fmtEuro(Save.walletCents)})`;
   } else {
     titleEl.classList.add('hidden');
     counterEl.classList.add('visible');
+    touchControlsEl.classList.toggle('visible', S.phase === 'play');
   }
 }
 syncHudCounters();
 updatePhaseUI();
+
+// ---------------------------------------------------------------------------
+// Mobile Touch Gestures (Canvas Drag/Flick/Tap/Hold) & Dedicated Action Pills
+// ---------------------------------------------------------------------------
+function hasLockedBinInReach() {
+  for (const b of activeBins) {
+    if (b.bashed || !b.locked) continue;
+    const relZ = S.z - b.z;
+    if (relZ > -1.1 && relZ < 3.4 && Math.abs(S.laneX - b.laneX) < 1.75) return true;
+  }
+  return false;
+}
+
+btnHopEl.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  AudioSys.unlock();
+  btnHopEl.classList.add('pressed');
+  touchHopPulse = 0.14;
+  haptic(8);
+});
+const releaseHopBtn = (e) => { e.stopPropagation(); btnHopEl.classList.remove('pressed'); };
+btnHopEl.addEventListener('pointerup', releaseHopBtn);
+btnHopEl.addEventListener('pointercancel', releaseHopBtn);
+
+btnBashEl.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  AudioSys.unlock();
+  try { btnBashEl.setPointerCapture(e.pointerId); } catch (_) {}
+  btnBashEl.classList.add('pressed');
+  btnBashHeld = true;
+  spaceJustPressed = true;
+  haptic(12);
+});
+const releaseBashBtn = (e) => {
+  e.stopPropagation();
+  if (!btnBashHeld) return;
+  btnBashHeld = false;
+  btnBashEl.classList.remove('pressed');
+  spaceJustReleased = true;
+};
+btnBashEl.addEventListener('pointerup', releaseBashBtn);
+btnBashEl.addEventListener('pointercancel', releaseBashBtn);
+
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' && !isCoarsePointer()) return;
+  AudioSys.unlock();
+  if (S.shopOpen || !S.ready) return;
+  if (S.phase === 'title') {
+    startOrRestartFromUI();
+    return;
+  }
+  if (S.phase !== 'play' || steerPtrId !== null) return;
+
+  steerPtrId = e.pointerId;
+  try { renderer.domElement.setPointerCapture(e.pointerId); } catch (_) {}
+  steerStartX = steerAnchorX = e.clientX;
+  steerStartY = e.clientY;
+  steerStartTime = performance.now();
+  steerMaxMove = 0;
+  steerSwipedUp = false;
+
+  steerPuckEl.style.left = `${e.clientX}px`;
+  steerPuckEl.style.top = `${e.clientY}px`;
+  steerPuckEl.classList.add('active');
+
+  // One-handed convenience: pressing & holding right next to a locked bin begins picking immediately;
+  // otherwise holding steady for 155ms without lateral drag also holds pick!
+  if (hasLockedBinInReach()) {
+    touchHoldBash = true;
+    spaceJustPressed = true;
+  } else {
+    if (holdTimer) clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      if (steerPtrId === e.pointerId && steerMaxMove < 22 && S.phase === 'play') {
+        touchHoldBash = true;
+      }
+    }, 155);
+  }
+});
+
+renderer.domElement.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== steerPtrId) return;
+  const dxTotal = e.clientX - steerStartX;
+  const dyTotal = e.clientY - steerStartY;
+  const dist = Math.hypot(dxTotal, dyTotal);
+  if (dist > steerMaxMove) steerMaxMove = dist;
+
+  // Floating virtual thumb anchor: follows finger beyond ±44px so direction reversals are instant!
+  const maxThrow = Math.min(48, Math.max(32, innerWidth * 0.10));
+  let dx = e.clientX - steerAnchorX;
+  if (Math.abs(dx) > maxThrow) {
+    steerAnchorX = e.clientX - Math.sign(dx) * maxThrow;
+    dx = e.clientX - steerAnchorX;
+  }
+  touchSteer = Math.abs(dx) < 3.5 ? 0 : THREE.MathUtils.clamp(dx / maxThrow, -1, 1);
+
+  steerPuckEl.style.left = `${e.clientX}px`;
+  steerPuckEl.style.top = `${e.clientY}px`;
+
+  // If user is actively dragging to steer (and not already locked onto picking a bin), cancel stationary hold
+  if (steerMaxMove > 24 && !S.pickingBin && touchHoldBash) {
+    touchHoldBash = false;
+  }
+
+  // Quick upward flick -> Hop over bollards!
+  if (!steerSwipedUp && dyTotal < -30 && (performance.now() - steerStartTime) < 280 && Math.abs(dyTotal) > Math.abs(dxTotal) * 1.1) {
+    steerSwipedUp = true;
+    touchHopPulse = 0.14;
+    haptic(8);
+  }
+});
+
+function endSteerPointer(e) {
+  if (e.pointerId !== steerPtrId) return;
+  if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  const elapsed = performance.now() - steerStartTime;
+  const wasHolding = touchHoldBash;
+  const moved = steerMaxMove;
+  const swiped = steerSwipedUp;
+
+  steerPtrId = null;
+  touchSteer = 0;
+  touchHoldBash = false;
+  steerPuckEl.classList.remove('active');
+
+  if (wasHolding) {
+    spaceJustReleased = true;
+    if (elapsed < 220 && moved < 22 && !swiped && !S.pickingBin) {
+      spaceJustPressed = true;
+    }
+  } else if (elapsed < 230 && moved < 22 && !swiped && S.phase === 'play') {
+    spaceJustPressed = true;
+    haptic(10);
+  }
+}
+renderer.domElement.addEventListener('pointerup', endSteerPointer);
+renderer.domElement.addEventListener('pointercancel', endSteerPointer);
 
 function currentSegmentHasRailing(z) {
   for (const seg of segments) {
@@ -1873,6 +2201,8 @@ function stopLockpick() {
 function triggerGameOver(reason) {
   if (S.phase === 'over') return;
   stopLockpick();
+  clearTouchGestures();
+  haptic([35, 45, 55]);
   S.phase = 'over';
   S.reason = reason;
   S.overDelay = 0.72;
@@ -1942,6 +2272,7 @@ function executeBinBash(bin, wasLocked) {
 
   S.buzz = Math.min(1.0, S.buzz + (bin.locked ? 0.18 : 0.10));
   S.camShake = Math.max(S.camShake, wasLocked ? 0.32 : 0.18);
+  haptic(wasLocked ? [18, 30, 22] : 14);
   fadeToAction(wasLocked ? 'heavyBash' : 'bash', 0.06, true);
   S.actionTimer = wasLocked ? 0.42 : 0.32;
 }
@@ -1990,6 +2321,7 @@ function executeMarketCashIn(mkt) {
     syncHudCounters(true, true);
     burstCoins(mkt.slotWorld, Math.min(48, 18 + count * 2));
     AudioSys.play('register', 0.68, 1.0);
+    haptic([16, 35, 24]);
 
     const sub = mult >= 1.5 ? '1.50x MEGA HAUL!' : (mult >= 1.25 ? '1.25x BULK BONUS!' : `${count} CANS BANKED`);
     spawnWorldPopup(mkt.slotWorld.clone().add(new THREE.Vector3(-0.3, 0.55, 0)), `+${fmtEuro(payoutCents)}`, '#ffe45c', sub, 1.16);
@@ -2312,16 +2644,28 @@ function syncHeroAndCamera(dt, snap = false) {
     const sc = projectToScreen(_lockWorldPos);
     if (sc) {
       lockpickHudEl.classList.add('active');
-      lockpickHudEl.style.left = `${sc.x.toFixed(1)}px`;
-      lockpickHudEl.style.top = `${(sc.y - 10).toFixed(1)}px`;
+      const clampedX = Math.max(64, Math.min(innerWidth - 64, sc.x));
+      const clampedY = Math.max(64, Math.min(innerHeight - 90, sc.y - 10));
+      lockpickHudEl.style.left = `${clampedX.toFixed(1)}px`;
+      lockpickHudEl.style.top = `${clampedY.toFixed(1)}px`;
       const circ = 150.8;
       const prog = THREE.MathUtils.clamp(S.pickProgress, 0, 1);
       lockpickArcEl.style.strokeDashoffset = (circ * (1 - prog)).toFixed(2);
       lockpickArcEl.setAttribute('stroke', prog > 0.78 ? '#7be7fc' : '#ffdf38');
-      lockpickLabelEl.textContent = 'HOLD SPACE \u00B7 RELEASE BAILS';
+      lockpickLabelEl.textContent = isCoarsePointer()
+        ? 'HOLD \u00B7 LIFT BAILS'
+        : 'HOLD SPACE \u00B7 RELEASE BAILS';
     }
   } else {
     lockpickHudEl.classList.remove('active');
+  }
+
+  // Highlight mobile BASH/PICK pill in gold whenever a padlocked bin is within reach
+  if (S.phase === 'play' && isCoarsePointer()) {
+    const lockNear = !!(S.pickingBin || hasLockedBinInReach());
+    btnBashEl.classList.toggle('lock-near', lockNear);
+    btnBashMainEl.textContent = S.pickingBin ? 'HOLD' : (lockNear ? 'PICK' : 'BASH');
+    btnBashSubEl.textContent = S.pickingBin ? 'LIFT BAILS' : (lockNear ? 'HOLD LOCK' : 'HOLD PICK');
   }
 
   // Anchor chasing Warden "!" alert badges above their caps
@@ -2368,17 +2712,29 @@ function syncHeroAndCamera(dt, snap = false) {
   }
   for (; wi < warmLights.length; wi++) warmLights[wi].intensity = 0;
 
-  // Steady Low Chase Camera (fixed readable FOV 50 — zero disorienting speed-boost zoom!)
-  camera.fov = 50;
+  // Steady Low Chase Camera: exact 50° FOV on PC/landscape (aspect >= 1);
+  // smoothly widens FOV & pulls back in portrait (aspect < 1) so canal + bins stay in frame!
+  const aspect = innerWidth / Math.max(1, innerHeight);
+  const portraitT = THREE.MathUtils.clamp((1.0 - aspect) / 0.54, 0, 1);
+  camera.fov = 50 + portraitT * 20;
+  camera.aspect = aspect;
   camera.updateProjectionMatrix();
 
   if (S.phase === 'over') {
-    const camOver = laneToWorld(S.z + 3.65 + Math.sin(S.t * 0.45) * 0.45, Math.min(0.05, S.laneX - 1.15), 1.72);
+    const camOver = laneToWorld(
+      S.z + 3.65 + portraitT * 1.15 + Math.sin(S.t * 0.45) * 0.45,
+      Math.min(0.05, S.laneX - 1.15 * (1 - portraitT * 0.35)),
+      1.72 + portraitT * 0.35
+    );
     camera.position.lerp(camOver, 1 - Math.exp(-3.5 * dt));
     camera.lookAt(wp.x, Math.max(0.4, wp.y + 0.92), wp.z - 0.8);
   } else {
-    const camDist = S.pickingBin ? 2.55 : 2.88;
-    const camDesired = laneToWorld(S.z + camDist, S.laneX * 0.78 - 0.16, Math.max(0.2, groundElev) + 1.34);
+    const baseDist = S.pickingBin ? 2.55 : 2.88;
+    const camDist = baseDist + portraitT * 1.08;
+    const latFollow = THREE.MathUtils.lerp(0.78, 0.52, portraitT);
+    const latBias = THREE.MathUtils.lerp(-0.16, -0.34, portraitT);
+    const camHeight = Math.max(0.2, groundElev) + 1.34 + portraitT * 0.38;
+    const camDesired = laneToWorld(S.z + camDist, S.laneX * latFollow + latBias, camHeight);
     if (snap) {
       camera.position.copy(camDesired);
     } else {
@@ -2391,7 +2747,9 @@ function syncHeroAndCamera(dt, snap = false) {
       camera.position.x += (Math.random() - 0.5) * S.camShake * 0.20;
       camera.position.y += (Math.random() - 0.5) * S.camShake * 0.16;
     }
-    const lookPt = laneToWorld(S.z - 6.2, S.laneX * 0.68 - 0.14, Math.max(0, groundElev) + 1.16);
+    const lookLatFollow = THREE.MathUtils.lerp(0.68, 0.45, portraitT);
+    const lookLatBias = THREE.MathUtils.lerp(-0.14, -0.32, portraitT);
+    const lookPt = laneToWorld(S.z - 6.2, S.laneX * lookLatFollow + lookLatBias, Math.max(0, groundElev) + 1.16);
     _camTarget.copy(lookPt);
     camera.lookAt(_camTarget);
     camera.rotation.z += THREE.MathUtils.clamp(-S.velLane * 0.0085, -0.042, 0.042);
@@ -2412,34 +2770,43 @@ async function initAssets() {
   // Kick off audio decode in parallel
   AudioSys.loadAll();
 
+  const glbUrls = [
+    'assets/hero_rig_8.glb',
+    'assets/hero_rig_12.glb',
+    'assets/hero_rig_14.glb',
+    'assets/hero_rig_16.glb',
+    'assets/hero_rig_18.glb',
+    'assets/hero_rig_20.glb',
+    'assets/blue_bag_0.glb',
+    'assets/amsterdam_bin_body_0.glb',
+    'assets/amsterdam_bin_door_0.glb',
+    'assets/spilled_blue_liner_0.glb',
+    'assets/statiegeld_can_0.glb',
+    'assets/padlock_0.glb',
+    'assets/dutch_cyclist_0.glb',
+    'assets/cargo_bike_0.glb',
+    'assets/warden_rig_8.glb',
+    'assets/warden_rig_7.glb',
+    'assets/townhouse_a_0.glb',
+    'assets/townhouse_b_0.glb',
+    'assets/return_market_0.glb',
+    'assets/streetlamp_0.glb',
+    'assets/bollard_0.glb',
+  ];
+  let loadedCount = 0;
+  const loadTracked = (url) => gltfLoader.loadAsync(url).then((res) => {
+    loadedCount++;
+    const pct = Math.round((loadedCount / glbUrls.length) * 100);
+    if (loadFillEl) loadFillEl.style.width = `${pct}%`;
+    if (loadLabelEl) loadLabelEl.textContent = `LOADING CANAL STREET... ${pct}%`;
+    return res;
+  });
+
   const [
     heroRunG, heroJumpG, heroBashG, heroHeavyG, heroHitG, heroIdleG,
     bagG, binBodyG, binDoorG, linerG, canG, padlockG,
-    bikeG, cyclistG, cargoG, wardenWalkG, wardenRunG, houseAG, houseBG, marketG, lampG, bollardG
-  ] = await Promise.all([
-    gltfLoader.loadAsync('assets/hero_rig_8.glb'),
-    gltfLoader.loadAsync('assets/hero_rig_12.glb'),
-    gltfLoader.loadAsync('assets/hero_rig_14.glb'),
-    gltfLoader.loadAsync('assets/hero_rig_16.glb'),
-    gltfLoader.loadAsync('assets/hero_rig_18.glb'),
-    gltfLoader.loadAsync('assets/hero_rig_20.glb'),
-    gltfLoader.loadAsync('assets/blue_bag_0.glb'),
-    gltfLoader.loadAsync('assets/amsterdam_bin_body_0.glb'),
-    gltfLoader.loadAsync('assets/amsterdam_bin_door_0.glb'),
-    gltfLoader.loadAsync('assets/spilled_blue_liner_0.glb'),
-    gltfLoader.loadAsync('assets/statiegeld_can_0.glb'),
-    gltfLoader.loadAsync('assets/padlock_0.glb'),
-    gltfLoader.loadAsync('assets/dutch_bike_0.glb'),
-    gltfLoader.loadAsync('assets/dutch_cyclist_0.glb'),
-    gltfLoader.loadAsync('assets/cargo_bike_0.glb'),
-    gltfLoader.loadAsync('assets/warden_rig_8.glb'),
-    gltfLoader.loadAsync('assets/warden_rig_7.glb'),
-    gltfLoader.loadAsync('assets/townhouse_a_0.glb'),
-    gltfLoader.loadAsync('assets/townhouse_b_0.glb'),
-    gltfLoader.loadAsync('assets/return_market_0.glb'),
-    gltfLoader.loadAsync('assets/streetlamp_0.glb'),
-    gltfLoader.loadAsync('assets/bollard_0.glb'),
-  ]);
+    cyclistG, cargoG, wardenWalkG, wardenRunG, houseAG, houseBG, marketG, lampG, bollardG
+  ] = await Promise.all(glbUrls.map(loadTracked));
 
   // 1. Hero (1.78m, rotated Math.PI so he faces -Z away from camera)
   const hm = heroRunG.scene;
@@ -2491,7 +2858,6 @@ async function initAssets() {
   Templates.padlock = normalizeStaticGLB(padlockG.scene, 0.30, 0, 0.014, { tint: 0xffdc48 });
 
   // 4. Bikes & Cargo-Bikes (native front wheel is +X -> rotate -Math.PI/2 so oncoming bikes face +Z!)
-  Templates.bike = normalizeStaticGLB(bikeG.scene, 1.06, -Math.PI * 0.5, 0.012);
   Templates.cyclist = normalizeStaticGLB(cyclistG.scene, 1.74, -Math.PI * 0.5, 0.014);
   Templates.cargo = normalizeStaticGLB(cargoG.scene, 1.72, -Math.PI * 0.5, 0.014);
 
@@ -2516,6 +2882,8 @@ async function initAssets() {
 
   resetRun(START_X);
   S.ready = true;
+  if (loadWrapEl) loadWrapEl.classList.add('done');
+  updatePhaseUI();
 }
 initAssets();
 
@@ -2526,7 +2894,7 @@ const clock = new THREE.Clock();
 
 function frame() {
   const dt = Math.min(clock.getDelta(), 1 / 20);
-  const inp = readInput();
+  const inp = readInput(dt);
   spaceJustPressed = false;
   spaceJustReleased = false;
   restartJustPressed = false;
@@ -2867,9 +3235,10 @@ function frame() {
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(devicePixelRatio, IS_MOBILE_GPU ? 1.5 : 2));
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);
-  bloomPass.setSize(innerWidth, innerHeight);
+  bloomPass.setSize(Math.max(1, Math.round(innerWidth * bloomScale)), Math.max(1, Math.round(innerHeight * bloomScale)));
   gradePass.uniforms.uRes.value.set(innerWidth, innerHeight);
 });
 

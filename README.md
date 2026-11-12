@@ -22,7 +22,8 @@ Sprint at a steady, tactical **`11.0 m/s`** down an endless curving Amsterdam *g
 
 ## Controls & Running Locally
 
-- **Keyboard:** `A` / `D` or `Left` / `Right` weave · `W` / `Up` hop low bollards · **Tap `Space`** bash unlocked bin · **Hold `Space`** stop & pick padlocked bin (release early to bail!) · `Tab` open Gear Shop on title · `1`–`5` buy upgrades in shop · `R` / `Enter` start or run again
+- **Keyboard (PC):** `A` / `D` or `Left` / `Right` weave · `W` / `Up` hop low bollards · **Tap `Space`** bash unlocked bin · **Hold `Space`** stop & pick padlocked bin (release early to bail!) · `Tab` open Gear Shop on title · `1`–`5` buy upgrades in shop · `R` / `Enter` start or run again
+- **Smartphone / Touch (Portrait & Landscape):** Tap title to sprint · **Drag horizontally anywhere** for smooth analog weave · **Quick swipe up** (or right-corner `HOP` pill) to hop · **Tap** (or right-corner `BASH` pill) to smash unlocked bins · **Press & hold** (or hold right-corner `PICK` pill) to pick padlocked bins, **lift thumb early to bail**!
 - **Gamepad:** Left Stick weave · `B` / `Y` hop · `A` / `X` bash / hold to pick lock · `Start` begin / restart
 - **URL Parameters:**
   - `?autostart` — skips title overlay directly into live play
