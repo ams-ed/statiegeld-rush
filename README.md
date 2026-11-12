@@ -1,6 +1,6 @@
 # Statiegeld Rush
 
-**[Play Live in Your Browser (GitHub Pages)](https://ams-ed.github.io/statiegeld-rush/)**
+**[Play Live on Vercel](https://statiegeld-rush.vercel.app/)** · **[Play on GitHub Pages](https://ams-ed.github.io/statiegeld-rush/)**
 
 A cel-shaded, comic-inked 3D WebGL arcade game built in Three.js (`three@0.160.0`) from the generated gameplay reference clip `video/gameplay.mp4`, with **100% of 3D models, character rigs/animations, tileable textures, sky backdrops, particle sprites, sound effects, and music generated on fal** via `fal_asset.py`.
 
