@@ -1,0 +1,17 @@
+[
+ {
+  "endpoint": "minimax/h3-max/text-to-video",
+  "name": "gameplay",
+  "seconds": 17.9,
+  "arguments": {
+   "duration": 10,
+   "resolution": "1080P",
+   "aspect_ratio": "16:9",
+   "prompt_expansion_mode": "disabled"
+  },
+  "prompt": "Bold cel-shaded 3D arcade game, punchy ink outlines, rainy night in Amsterdam with neon reflections on wet brick cobblestones and dark canal water beside crooked townhouses: a wiry wide-eyed scavenger in an oversized dark hoodie sprints down the canal street, bashing open dark-grey metallic cylindrical street trash bins that burst in comic fountains of colorful litter across the pavement while shiny silver aluminum cans fly into an enormous bulging bright-blue reusable shopping bag slung over his shoulder, swerving around a passing Dutch bicycle and slamming the cans into a glowing sky-blue corner market wall return slot that erupts in golden coins and launches him forward in a vivid neon speed blur. Steady low third-person chase camera behind the runner, no text, no HUD, no UI.",
+  "files": [
+   "video/gameplay.mp4"
+  ]
+ }
+]

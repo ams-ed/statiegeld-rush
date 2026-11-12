@@ -1,0 +1,2879 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statiegeld Rush</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #262932;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none;
+  }
+  canvas { display: block; width: 100vw; height: 100vh; }
+
+  /* Minimal title + 1-line controls + Gear Shop pill */
+  #titleOverlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end; padding-bottom: 8.5vh;
+    pointer-events: none; transition: opacity 0.4s ease;
+    background: radial-gradient(circle at 50% 58%, rgba(10,12,18,0.0) 35%, rgba(6,8,14,0.52) 100%);
+    z-index: 10;
+  }
+  #titleOverlay.hidden { opacity: 0; pointer-events: none !important; }
+  #titleOverlay h1 {
+    margin: 0 0 10px 0; font-size: clamp(32px, 5vw, 62px); font-weight: 900;
+    letter-spacing: 0.06em; color: #f6f8fc;
+    text-shadow: 0 4px 0 #060403, 0 0 26px rgba(14, 195, 218, 0.55);
+  }
+  #titleOverlay p {
+    margin: 0 0 14px 0; font-size: clamp(13px, 1.4vw, 17px); font-weight: 700;
+    letter-spacing: 0.03em; color: rgba(240, 245, 255, 0.94);
+    text-shadow: 0 2px 0 #060403, 0 2px 10px rgba(0,0,0,0.85);
+  }
+  #titleShopBtn {
+    pointer-events: auto; cursor: pointer;
+    padding: 8px 18px; border-radius: 999px;
+    background: #17202c; border: 2.5px solid #060403;
+    box-shadow: 0 3px 0 #060403; color: #ffdf38;
+    font-size: 14px; font-weight: 800; letter-spacing: 0.05em;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  #titleShopBtn:hover { background: #223042; transform: translateY(-1px); }
+  #titleOverlay.hidden #titleShopBtn { pointer-events: none; }
+
+  /* Minimal corner HUD: Buzz Pill + Bag Cap (8/12) + Persistent Euro Wallet (€4.35) */
+  #counter {
+    position: fixed; top: 18px; right: 24px; display: flex; align-items: center; gap: 18px;
+    pointer-events: none; opacity: 0; transition: opacity 0.35s ease; z-index: 8;
+  }
+  #counter.visible { opacity: 1; }
+  .cnt-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 23px; font-weight: 900; font-variant-numeric: tabular-nums;
+    color: #f7f9fc; text-shadow: 0 2.5px 0 #060403, 0 0 10px rgba(0,0,0,0.65);
+  }
+  .cnt-item img {
+    width: 28px; height: 28px; object-fit: contain;
+    filter: drop-shadow(0 2px 0 #060403);
+  }
+  #heldVal, #walletVal { transition: transform 0.14s ease, color 0.2s ease; display: inline-block; }
+  #heldVal.pulse { transform: scale(1.24); color: #8ef4ff; }
+  #heldVal.full { color: #ffdf38; }
+  #walletVal { color: #ffe45c; }
+  #walletVal.pulse { transform: scale(1.26); color: #ffffff; }
+
+  /* Slim cel-shaded Buzz stamina pill */
+  .buzz-wrap { display: flex; align-items: center; gap: 6px; }
+  .buzz-icon {
+    font-size: 18px; line-height: 1; filter: drop-shadow(0 2px 0 #060403);
+  }
+  .buzz-track {
+    width: 86px; height: 12px; border-radius: 999px;
+    background: rgba(10, 13, 20, 0.82); border: 2.5px solid #060403;
+    box-shadow: 0 2px 0 #060403; overflow: hidden; position: relative;
+  }
+  #buzzFill {
+    height: 100%; width: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #ffb84d 0%, #5ee6ff 100%);
+    transition: background 0.2s ease;
+  }
+  .buzz-track.low #buzzFill {
+    background: linear-gradient(90deg, #ff3b4e 0%, #ff9442 100%);
+  }
+  .buzz-track.low { animation: buzzPulse 0.45s infinite alternate; }
+  @keyframes buzzPulse { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+  /* Diegetic 3D-projected Padlock Radial Timer */
+  #lockpickHud {
+    position: fixed; left: 0; top: 0; width: 74px; height: 74px;
+    transform: translate(-50%, -50%); pointer-events: none;
+    opacity: 0; transition: opacity 0.1s ease; z-index: 9;
+  }
+  #lockpickHud.active { opacity: 1; }
+  #lockpickHud svg { width: 100%; height: 100%; filter: drop-shadow(0 3px 0 #060403); }
+  #lockpickLabel {
+    position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+    margin-top: 2px; white-space: nowrap; font-size: 11px; font-weight: 900;
+    letter-spacing: 0.07em; color: #ffdf38;
+    text-shadow: 0 2px 0 #060403, 0 0 6px #060403;
+  }
+
+  /* Floating 3D-projected World Popups (+€2.40, BULK BONUS, Warden ! alert) */
+  #popups { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 7; }
+  .world-pop {
+    position: absolute; transform: translate(-50%, -50%);
+    font-weight: 900; text-align: center; white-space: nowrap;
+    text-shadow: 0 3px 0 #060403, 0 0 12px rgba(0,0,0,0.75);
+    pointer-events: none; will-change: transform, opacity;
+  }
+  .warden-bang {
+    position: absolute; transform: translate(-50%, -100%);
+    background: #ffdf38; color: #060403; border: 2.5px solid #060403;
+    border-radius: 8px; padding: 1px 7px; font-size: 16px; font-weight: 900;
+    box-shadow: 0 3px 0 #060403;
+  }
+
+  /* Cel-Shaded Between-Run Summary & 5-Track Upgrade Shop */
+  #shopOverlay {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(8, 10, 16, 0.72); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.28s ease; z-index: 20;
+    padding: 16px; box-sizing: border-box;
+  }
+  #shopOverlay.open { opacity: 1; pointer-events: auto; }
+  .shop-panel {
+    width: min(680px, 96vw); max-height: 92vh; overflow-y: auto;
+    background: #1a212d; border: 3.5px solid #060403; border-radius: 18px;
+    box-shadow: 0 10px 0 #060403, 0 20px 50px rgba(0,0,0,0.75);
+    padding: 20px 22px; color: #f6f8fc; box-sizing: border-box;
+  }
+  .shop-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border-bottom: 2.5px solid rgba(255,255,255,0.09); padding-bottom: 12px; margin-bottom: 14px;
+  }
+  #runBanner {
+    font-size: clamp(20px, 3vw, 28px); font-weight: 900; letter-spacing: 0.04em;
+    text-shadow: 0 3px 0 #060403; margin: 0;
+  }
+  #runSub { margin: 4px 0 0 0; font-size: 13.5px; font-weight: 700; color: #a9b6ca; }
+  .wallet-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: #0f141d; border: 2.5px solid #060403; border-radius: 12px;
+    padding: 7px 14px; box-shadow: 0 3px 0 #060403;
+    font-size: 22px; font-weight: 900; color: #ffe45c; font-variant-numeric: tabular-nums;
+  }
+  .wallet-badge img { width: 26px; height: 26px; }
+  .upg-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+  .upg-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
+    background: #232c3b; border: 2.5px solid #060403; border-radius: 12px;
+    padding: 10px 13px; box-shadow: 0 3px 0 #060403;
+  }
+  .upg-title { font-size: 15px; font-weight: 900; color: #f7f9fc; display: flex; align-items: center; gap: 8px; }
+  .upg-key {
+    font-size: 11px; font-weight: 900; background: #0f141d; color: #8ef4ff;
+    padding: 1px 6px; border-radius: 5px; border: 1.5px solid #060403;
+  }
+  .upg-desc { font-size: 12.5px; font-weight: 600; color: #b4c0d4; margin-top: 2px; }
+  .upg-pips { display: flex; gap: 4px; }
+  .pip {
+    width: 11px; height: 16px; border-radius: 4px;
+    background: #111620; border: 2px solid #060403;
+  }
+  .pip.on { background: #0ec3da; box-shadow: inset 0 2px 0 #8ef4ff; }
+  .upg-buy {
+    cursor: pointer; min-width: 92px; padding: 8px 12px; border-radius: 10px;
+    border: 2.5px solid #060403; box-shadow: 0 3px 0 #060403;
+    font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums;
+    background: #ffdf38; color: #060403; transition: transform 0.08s ease, background 0.12s ease;
+  }
+  .upg-buy:hover:not(:disabled) { background: #fff078; transform: translateY(-1px); }
+  .upg-buy:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 #060403; }
+  .upg-buy:disabled {
+    cursor: default; background: #2d3646; color: #6f7c91; box-shadow: none;
+  }
+  .upg-buy.maxed { background: #0ec3da; color: #060403; }
+  .shop-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  #resetSaveBtn {
+    cursor: pointer; background: transparent; border: none; color: #6e7b90;
+    font-size: 12px; font-weight: 700; text-decoration: underline; padding: 4px 6px;
+  }
+  #resetSaveBtn:hover { color: #ff6b7a; }
+  #runAgainBtn {
+    cursor: pointer; padding: 11px 26px; border-radius: 12px;
+    background: #0ec3da; color: #060403; border: 3px solid #060403;
+    box-shadow: 0 4px 0 #060403; font-size: 16px; font-weight: 900; letter-spacing: 0.05em;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  #runAgainBtn:hover { background: #5eeeff; transform: translateY(-1px); }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="titleOverlay">
+  <h1>STATIEGELD RUSH</h1>
+  <p>A / D weave &middot; W hop &middot; Tap Space bash &middot; Hold Space pick padlock &middot; R restart</p>
+  <button id="titleShopBtn" type="button">[ TAB ] GEAR SHOP</button>
+</div>
+
+<div id="counter">
+  <div class="buzz-wrap">
+    <span class="buzz-icon">&#9889;</span>
+    <div class="buzz-track" id="buzzTrack"><div id="buzzFill"></div></div>
+  </div>
+  <div class="cnt-item"><img src="assets/icon_can.png" alt=""><span id="heldVal">0/12</span></div>
+  <div class="cnt-item"><img src="assets/sprite_coin_cutout.webp" alt=""><span id="walletVal">&euro;0.00</span></div>
+</div>
+
+<div id="lockpickHud">
+  <svg viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="24" fill="rgba(8,11,18,0.72)" stroke="#060403" stroke-width="6"/>
+    <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="5"/>
+    <circle id="lockpickArc" cx="32" cy="32" r="24" fill="none" stroke="#ffdf38" stroke-width="5.5"
+      stroke-linecap="round" transform="rotate(-90 32 32)"
+      stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+  </svg>
+  <div id="lockpickLabel">PICKING...</div>
+</div>
+
+<div id="popups"></div>
+
+<div id="shopOverlay">
+  <div class="shop-panel">
+    <div class="shop-header">
+      <div>
+        <h2 id="runBanner">GEAR UP</h2>
+        <p id="runSub">Bank cans at glowing Corner Markets to keep your Euros!</p>
+      </div>
+      <div class="wallet-badge">
+        <img src="assets/sprite_coin_cutout.webp" alt="">
+        <span id="shopWalletVal">&euro;0.00</span>
+      </div>
+    </div>
+    <div class="upg-list" id="upgList"></div>
+    <div class="shop-footer">
+      <button id="resetSaveBtn" type="button">Reset Progress</button>
+      <button id="runAgainBtn" type="button">HIT THE STREET [ R / ENTER ]</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const Q = new URLSearchParams(location.search);
+const BASE_SEED = Math.max(1, +(Q.get('seed') || 7) | 0);
+const START_X = Math.max(0, +(Q.get('x') || 0));
+const AUTOSTART = Q.has('autostart');
+const FREEZE = Q.has('freeze');
+
+function makeRng(s) {
+  let st = (s * 48271) % 2147483647;
+  if (st <= 0) st += 2147483646;
+  return () => ((st = (st * 16807) % 2147483647) - 1) / 2147483646;
+}
+let rand = makeRng(BASE_SEED);
+
+// Sampled directly from study/ frames & study/study.json (SPEC.md Section 6)
+const PALETTE = {
+  sky: 0x586170,
+  haze: 0x535660,
+  ink: 0x060403,
+  water: 0x17140f,
+  brickDark: 0x3b2a20,
+  stone: 0x585c60,
+  warmGlow: 0xffb866,
+  bagBlue: 0x0193d9,
+  marketCyan: 0x0ec3da,
+  marketSign: 0x8ef4ff,
+  coinGold: 0xffdf38,
+  turboMagenta: 0xfa62fb,
+  turboCyan: 0x7be7fc,
+};
+
+// ---------------------------------------------------------------------------
+// Renderer, Scene, Lights & Post-Processing Stack
+// ---------------------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x464c58);
+scene.fog = new THREE.FogExp2(0x484b55, 0.0155);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.12, 320);
+
+const hemiLight = new THREE.HemisphereLight(0x7c8ca6, 0x5c3620, 1.08);
+scene.add(hemiLight);
+
+const moonDir = new THREE.DirectionalLight(0xdce6f7, 0.78);
+moonDir.castShadow = true;
+moonDir.shadow.mapSize.set(2048, 2048);
+moonDir.shadow.camera.near = 2;
+moonDir.shadow.camera.far = 95;
+moonDir.shadow.camera.left = -22;
+moonDir.shadow.camera.right = 22;
+moonDir.shadow.camera.top = 28;
+moonDir.shadow.camera.bottom = -24;
+moonDir.shadow.bias = -0.0005;
+scene.add(moonDir, moonDir.target);
+
+// Pooled dynamic streetlights (nearest lamps + active Corner Market cyan glow)
+const warmLights = Array.from({ length: 5 }, () => {
+  const pl = new THREE.PointLight(0xffa84c, 6.2, 16, 1.65);
+  scene.add(pl);
+  return pl;
+});
+const marketLight = new THREE.PointLight(PALETTE.marketCyan, 0, 18, 1.6);
+scene.add(marketLight);
+const heroRimLight = new THREE.PointLight(0x52c8ff, 1.2, 4.5, 1.8);
+scene.add(heroRimLight);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.30, 0.52, 0.86);
+composer.addPass(bloomPass);
+
+// Unified Grade + Screen-Space Ink Accent + Buzz Vignette/Desat + Neon Turbo Radial Blur + Film Grain
+const gradePass = new ShaderPass({
+  uniforms: {
+    tDiffuse: { value: null },
+    uRes: { value: new THREE.Vector2(innerWidth, innerHeight) },
+    uTime: { value: 0 },
+    uLift: { value: new THREE.Vector3(0.008, 0.010, 0.018) },
+    uGain: { value: new THREE.Vector3(1.04, 1.00, 0.96) },
+    uVignette: { value: 0.30 },
+    uLowBuzz: { value: 0.0 },
+    uTurbo: { value: 0.0 },
+    uGrain: { value: 0.025 },
+  },
+  vertexShader: `varying vec2 vUv;
+    void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 uRes;
+    uniform float uTime, uVignette, uLowBuzz, uTurbo, uGrain;
+    uniform vec3 uLift, uGain;
+    varying vec2 vUv;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+    void main(){
+      vec2 uv = vUv;
+      vec2 toCenter = uv - vec2(0.5, 0.56);
+      float dist = length(toCenter);
+
+      // Subtle chromatic radial blur at frame edges during Neon Turbo Rush (f_041.jpg)
+      vec3 c;
+      if (uTurbo > 0.001) {
+        float rb = uTurbo * smoothstep(0.18, 0.72, dist) * 0.022;
+        vec2 dir = normalize(toCenter + 1e-5);
+        vec3 s0 = texture2D(tDiffuse, uv).rgb;
+        vec3 s1 = texture2D(tDiffuse, uv - dir * rb * 0.65).rgb;
+        vec3 s2 = texture2D(tDiffuse, uv - dir * rb * 1.35).rgb;
+        c = vec3(s0.r * 0.5 + s2.r * 0.5, (s0.g + s1.g) * 0.5, s0.b * 0.45 + s1.b * 0.55);
+        // Subtle radial cyan/magenta anime speed-streaks at screen outer rim
+        float ang = atan(toCenter.y, toCenter.x);
+        float streak = pow(max(0.0, sin(ang * 38.0 + uTime * 28.0) * 0.5 + 0.5), 11.0);
+        float edgeMask = smoothstep(0.42, 0.74, dist) * uTurbo;
+        vec3 neonCol = mix(vec3(0.48, 0.91, 0.99), vec3(0.98, 0.38, 0.98), step(0.5, fract(ang * 4.5)));
+        c += neonCol * streak * edgeMask * 0.13;
+      } else {
+        c = texture2D(tDiffuse, uv).rgb;
+      }
+
+      // Crisp graphic-novel micro ink line accent on sharp luminance steps
+      vec2 px = 1.0 / uRes;
+      float lC = luma(c);
+      float lR = luma(texture2D(tDiffuse, uv + vec2(px.x, 0.0)).rgb);
+      float lU = luma(texture2D(tDiffuse, uv + vec2(0.0, px.y)).rgb);
+      float edge = smoothstep(0.11, 0.32, abs(lC - lR) + abs(lC - lU));
+      c = mix(c, c * 0.42, edge * 0.38);
+
+      // Grade lift/gain
+      c = c * uGain + uLift;
+
+      // Low-Buzz diegetic feedback: desaturate + creeping dark vignette (zero HUD bars)
+      float gray = luma(c);
+      c = mix(c, vec3(gray) * vec3(0.92, 0.95, 1.04), uLowBuzz * 0.62);
+      float vigAmt = uVignette + uLowBuzz * 0.48;
+      c *= 1.0 - vigAmt * smoothstep(0.28 - uLowBuzz * 0.12, 0.92, dist * 1.28);
+
+      // Fine animated film grain gluing textures together
+      c += (hash(uv * 980.0 + fract(uTime * 13.7)) - 0.5) * uGrain;
+      gl_FragColor = vec4(max(c, 0.0), 1.0);
+    }`,
+});
+composer.addPass(gradePass);
+composer.addPass(new OutputPass());
+
+// ---------------------------------------------------------------------------
+// Cel-Shaded Shader Injection & Inverted-Hull Comic Ink Outlines
+// ---------------------------------------------------------------------------
+const outlineMatCache = new Map();
+function getOutlineMaterial(width, skinned) {
+  const key = `${width.toFixed(4)}_${skinned ? 1 : 0}`;
+  if (outlineMatCache.has(key)) return outlineMatCache.get(key);
+  const mat = new THREE.MeshBasicMaterial({ color: PALETTE.ink, side: THREE.BackSide });
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uOutlineWidth = { value: width };
+    shader.vertexShader = 'uniform float uOutlineWidth;\n' + shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+       transformed += normalize(normal) * uOutlineWidth;`
+    );
+  };
+  mat.customProgramCacheKey = () => 'ink_outline_' + key;
+  outlineMatCache.set(key, mat);
+  return mat;
+}
+
+function celify(root, { outline = 0.012, castShadow = true, receiveShadow = true, tint = null, emissiveWarmWindows = false, emissiveCyan = false } = {}) {
+  const toOutline = [];
+  root.updateMatrixWorld(true);
+  const rootBox = new THREE.Box3().setFromObject(root);
+  const rootHeight = Math.max(0.15, rootBox.max.y - rootBox.min.y);
+
+  root.traverse((o) => {
+    if (!o.isMesh || o.userData.isOutline) return;
+    o.castShadow = castShadow;
+    o.receiveShadow = receiveShadow;
+
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const newMats = mats.map((m) => {
+      if (!m) return m;
+      const cm = m.clone();
+      if (cm.map) cm.map.colorSpace = THREE.SRGBColorSpace;
+      if (tint !== null) cm.color.multiply(new THREE.Color(tint));
+      cm.roughness = Math.max(0.58, cm.roughness ?? 0.78);
+      cm.metalness = Math.min(0.22, cm.metalness ?? 0.06);
+      cm.onBeforeCompile = (shader) => {
+        let extraFrag = '';
+        if (emissiveWarmWindows) {
+          // Warm amber Amsterdam window panes glow through night fog while brick stays rich russet-brown!
+          extraFrag = `
+            float winMask = smoothstep(0.24, 0.46, diffuseColor.r) * smoothstep(0.15, 0.34, diffuseColor.g) * smoothstep(0.05, 0.18, diffuseColor.r - diffuseColor.b);
+            totalEmissiveRadiance += vec3(1.25, 0.74, 0.28) * winMask;
+          `;
+        } else if (emissiveCyan) {
+          // Vivid sky-blue Corner Market facade, bright cyan sign, and warm glowing grocery shelves!
+          extraFrag = `
+            float cyanWall = smoothstep(0.18, 0.52, diffuseColor.b) * smoothstep(0.14, 0.46, diffuseColor.g) * smoothstep(0.04, 0.24, diffuseColor.b - diffuseColor.r);
+            float brightSign = smoothstep(0.58, 0.85, diffuseColor.b) * smoothstep(0.55, 0.82, diffuseColor.g);
+            float warmShop = smoothstep(0.32, 0.62, diffuseColor.r) * smoothstep(0.20, 0.46, diffuseColor.g) * smoothstep(0.06, 0.22, diffuseColor.r - diffuseColor.b);
+            totalEmissiveRadiance += vec3(0.06, 0.76, 0.92) * cyanWall * 0.68 + vec3(0.55, 0.96, 1.0) * brightSign * 0.95 + vec3(1.35, 0.82, 0.30) * warmShop * 1.15;
+          `;
+        }
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <lights_fragment_end>',
+          `#include <lights_fragment_end>
+           vec3 safeAlb = max(diffuseColor.rgb, vec3(0.025));
+           vec3 irrad = reflectedLight.directDiffuse / safeAlb;
+           float irrLum = dot(irrad, vec3(0.299, 0.587, 0.114));
+           float qIrr = irrLum > 0.44 ? 1.12 : (irrLum > 0.12 ? 0.68 : 0.34);
+           reflectedLight.directDiffuse = diffuseColor.rgb * (irrad * (qIrr / max(irrLum, 0.001)));
+           ${extraFrag}`
+        );
+      };
+      cm.customProgramCacheKey = () => 'cel_std_v2_' + (emissiveWarmWindows ? 'w' : '') + (emissiveCyan ? 'c' : '');
+      return cm;
+    });
+    o.material = Array.isArray(o.material) ? newMats : newMats[0];
+    if (outline > 0) toOutline.push(o);
+  });
+
+  for (const m of toOutline) {
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    const gb = m.geometry.boundingBox;
+    const geomSpan = Math.max(0.01, gb.max.y - gb.min.y, gb.max.x - gb.min.x);
+    // Exact raw-attribute-space width invariant to skeleton bindMatrix or parent scale!
+    const localW = m.isSkinnedMesh
+      ? outline * (geomSpan / rootHeight)
+      : (outline / Math.max(m.getWorldScale(new THREE.Vector3()).x, 0.001));
+    const oMat = getOutlineMaterial(localW, !!m.isSkinnedMesh);
+    let shell;
+    if (m.isSkinnedMesh) {
+      shell = new THREE.SkinnedMesh(m.geometry, oMat);
+      shell.bind(m.skeleton, m.bindMatrix);
+    } else {
+      shell = new THREE.Mesh(m.geometry, oMat);
+    }
+    shell.userData.isOutline = true;
+    shell.position.copy(m.position);
+    shell.quaternion.copy(m.quaternion);
+    shell.scale.copy(m.scale);
+    shell.frustumCulled = m.frustumCulled;
+    if (m.parent) m.parent.add(shell);
+  }
+}
+
+// Normalize a static GLB into a wrapper Group whose origin is centered in X/Z with base at y = 0 and target height in meters
+function normalizeStaticGLB(gltfScene, targetHeight, rotY = 0, outlineMeters = 0.015, extraOpts = {}) {
+  const clone = gltfScene.clone(true);
+  clone.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(clone);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const scale = targetHeight / Math.max(size.y, 0.001);
+
+  const inner = new THREE.Group();
+  clone.position.set(-center.x, -box.min.y, -center.z);
+  inner.add(clone);
+  inner.rotation.y = rotY;
+  inner.scale.setScalar(scale);
+  inner.updateMatrixWorld(true);
+
+  celify(inner, { outline: outlineMeters, ...extraOpts });
+  const outBox = new THREE.Box3().setFromObject(inner);
+  const outSize = outBox.getSize(new THREE.Vector3());
+  inner.userData.size = outSize;
+  return inner;
+}
+
+// ---------------------------------------------------------------------------
+// Curving Amsterdam Canal Corridor Math
+// ---------------------------------------------------------------------------
+let curvePhaseA = 0.3, curvePhaseB = 1.1;
+function resetCurvePhases(seedVal) {
+  curvePhaseA = (seedVal * 0.73) % (Math.PI * 2);
+  curvePhaseB = (seedVal * 1.41 + 0.8) % (Math.PI * 2);
+}
+resetCurvePhases(BASE_SEED);
+
+// Player runs along -Z (dist = -z). Curve offset X is smooth & gently winding like an Amsterdam gracht.
+function curveX(z) {
+  return Math.sin(z * 0.015 + curvePhaseA) * 2.55 + Math.sin(z * 0.0068 + curvePhaseB) * 3.1;
+}
+function curveSlope(z) {
+  return 0.015 * 2.55 * Math.cos(z * 0.015 + curvePhaseA) + 0.0068 * 3.1 * Math.cos(z * 0.0068 + curvePhaseB);
+}
+// Heading yaw around +Y when facing -Z along the street tangent
+function curveYaw(z) {
+  const dxdz = curveSlope(z);
+  // Forward tangent vector along -Z is (-dxdz, 0, -1). Standard -Z has yaw = 0; yaw = atan2(dxdz, 1) rotates (0,0,-1) -> (-sin(yaw), 0, -cos(yaw))!
+  // Check: THREE rotation.y = yaw transforms (0, 0, -1) -> (-sin(yaw), 0, -cos(yaw)). We want x/z = (-dxdz)/(-1) => tan(yaw) = dxdz!
+  return Math.atan2(dxdz, 1.0);
+}
+function laneToWorld(z, laneX, y = 0) {
+  const yaw = curveYaw(z);
+  const cx = curveX(z);
+  return new THREE.Vector3(cx + Math.cos(yaw) * laneX, y, z - Math.sin(yaw) * laneX);
+}
+
+// Cross-section constants (meters relative to curve centerline, matching f_001.jpg & f_026.jpg framing)
+const CANAL_EDGE_X = -3.85;  // Quay drop-off into canal water (brings lamps, trees, bikes & dark water cleanly into left third!)
+const CURB_X = -0.88;        // Granite curb between brick bike lane and townhouse stoep sidewalk
+const WALL_X = 1.92;         // Right-hand townhouse facade limit for player center
+
+// ---------------------------------------------------------------------------
+// WebAudio Synthesizer-Free Asset Audio Engine (100% fal ElevenLabs MP3s)
+// ---------------------------------------------------------------------------
+const AudioSys = {
+  ctx: null,
+  buffers: {},
+  unlocked: false,
+  rainNode: null,
+  musicNode: null,
+  musicGain: null,
+  chargeNode: null,
+  init() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+  },
+  async loadAll() {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC) return;
+    const decoder = new OAC(2, 1, 44100);
+    const files = {
+      rain: 'assets/sfx_rain_ambience.mp3',
+      step: 'assets/sfx_footstep.mp3',
+      hop: 'assets/sfx_hop.mp3',
+      bash: 'assets/sfx_bin_bash.mp3',
+      charge: 'assets/sfx_charge_hum.mp3',
+      padlock: 'assets/sfx_padlock_break.mp3',
+      can: 'assets/sfx_can_pickup.mp3',
+      bell: 'assets/sfx_bike_bell.mp3',
+      whistle: 'assets/sfx_warden_whistle.mp3',
+      turbo: 'assets/sfx_cashin_turbo.mp3',
+      splash: 'assets/sfx_canal_splash.mp3',
+      lockpick: 'assets/sfx_lockpick.mp3',
+      register: 'assets/sfx_cash_register.mp3',
+      upgrade: 'assets/sfx_upgrade_buy.mp3',
+      busted: 'assets/sfx_busted.mp3',
+      music: 'assets/music_chase.mp3',
+    };
+    await Promise.all(Object.entries(files).map(async ([k, url]) => {
+      try {
+        const res = await fetch(url);
+        const arr = await res.arrayBuffer();
+        const buf = await decoder.decodeAudioData(arr);
+        // Peak-normalize buffer to 0.92 so every asset sits at predictable relative gain
+        let peak = 0.001;
+        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+          const d = buf.getChannelData(ch);
+          for (let i = 0; i < d.length; i += 4) {
+            const a = Math.abs(d[i]);
+            if (a > peak) peak = a;
+          }
+        }
+        const norm = Math.min(8.0, 0.92 / peak);
+        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+          const d = buf.getChannelData(ch);
+          for (let i = 0; i < d.length; i++) d[i] *= norm;
+        }
+        this.buffers[k] = buf;
+      } catch (_) {}
+    }));
+  },
+  unlock() {
+    this.init();
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    if (!this.unlocked && this.buffers.rain && this.buffers.music) {
+      this.unlocked = true;
+      // Start looping rain ambience
+      const rSrc = this.ctx.createBufferSource();
+      rSrc.buffer = this.buffers.rain;
+      rSrc.loop = true;
+      const rGain = this.ctx.createGain();
+      rGain.gain.value = 0.16;
+      rSrc.connect(rGain).connect(this.ctx.destination);
+      rSrc.start(0);
+      this.rainNode = rSrc;
+
+      // Start looping arcade synth-funk chase soundtrack below SFX
+      const mSrc = this.ctx.createBufferSource();
+      mSrc.buffer = this.buffers.music;
+      mSrc.loop = true;
+      const mGain = this.ctx.createGain();
+      mGain.gain.value = 0.22;
+      mSrc.connect(mGain).connect(this.ctx.destination);
+      mSrc.start(0);
+      this.musicNode = mSrc;
+      this.musicGain = mGain;
+    }
+  },
+  loops: {},
+  play(name, vol = 0.5, rate = 1.0) {
+    if (!this.ctx || !this.buffers[name]) return null;
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    if (!this.unlocked) this.unlock();
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.buffers[name];
+    src.playbackRate.value = rate;
+    const g = this.ctx.createGain();
+    g.gain.value = vol;
+    src.connect(g).connect(this.ctx.destination);
+    src.start(0);
+    return src;
+  },
+  startLoop(key, name, vol = 0.45, rate = 1.0) {
+    if (this.loops[key]) {
+      this.loops[key].src.playbackRate.value = rate;
+      return;
+    }
+    if (!this.ctx || !this.buffers[name]) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    if (!this.unlocked) this.unlock();
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.buffers[name];
+    src.loop = true;
+    src.playbackRate.value = rate;
+    const g = this.ctx.createGain();
+    g.gain.value = vol;
+    src.connect(g).connect(this.ctx.destination);
+    src.start(0);
+    this.loops[key] = { src, g };
+  },
+  stopLoop(key) {
+    const lp = this.loops[key];
+    if (!lp) return;
+    try { lp.src.stop(); lp.src.disconnect(); } catch (_) {}
+    delete this.loops[key];
+  }
+};
+addEventListener('pointerdown', () => AudioSys.unlock(), { passive: true });
+addEventListener('keydown', () => AudioSys.unlock(), { passive: true });
+
+// ---------------------------------------------------------------------------
+// Load All fal Assets (Textures, Sprites, GLBs, Audio)
+// ---------------------------------------------------------------------------
+const texLoader = new THREE.TextureLoader();
+const gltfLoader = new GLTFLoader();
+
+function loadTex(url, srgb = true, repeat = false) {
+  const t = texLoader.load(url);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  if (repeat) {
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  }
+  return t;
+}
+
+const texBrick = loadTex('assets/tex_wet_brick.webp', true, true);
+const texBrickSidewalk = loadTex('assets/tex_wet_brick.webp', true, true);
+const texStone = loadTex('assets/tex_quay_stone.webp', true, true);
+const texWater = loadTex('assets/tex_water_normal.webp', false, true);
+const texWater2 = loadTex('assets/tex_water_normal.webp', false, true);
+const texSky = loadTex('assets/sky_amsterdam_night.webp', true, true);
+const texTree = loadTex('assets/canal_tree_cutout.webp', true, false);
+const texCoin = loadTex('assets/sprite_coin_cutout.webp', true, false);
+const texLitter = loadTex('assets/sprite_litter_cutout.webp', true, false);
+const texNeon = loadTex('assets/tex_neon_streak.webp', true, false);
+
+// Panoramic Overcast Amsterdam Night Sky Cylinder (follows camera, zero seams)
+texSky.wrapS = THREE.RepeatWrapping;
+texSky.wrapT = THREE.ClampToEdgeWrapping;
+texSky.repeat.set(2, 1);
+const skyDome = new THREE.Mesh(
+  new THREE.CylinderGeometry(195, 195, 118, 40, 1, true),
+  new THREE.MeshBasicMaterial({ map: texSky, side: THREE.BackSide, fog: false, depthWrite: false })
+);
+skyDome.renderOrder = -10;
+scene.add(skyDome);
+
+// Overhead sky cap matching upper cloud slate #586170
+const skyCap = new THREE.Mesh(
+  new THREE.CircleGeometry(196, 32),
+  new THREE.MeshBasicMaterial({ color: 0x525b6a, side: THREE.BackSide, fog: false, depthWrite: false })
+);
+skyCap.rotation.x = -Math.PI / 2;
+skyCap.position.y = 58;
+skyDome.add(skyCap);
+
+// Shared Wet Road, Sidewalk, Curb, Quay & Canal Water Materials
+const roadMat = new THREE.MeshStandardMaterial({
+  map: texBrick,
+  bumpMap: texBrick,
+  bumpScale: 0.042,
+  roughness: 0.22,
+  metalness: 0.06,
+  color: 0xd48c62,
+});
+const sidewalkMat = new THREE.MeshStandardMaterial({
+  map: texBrickSidewalk,
+  bumpMap: texBrickSidewalk,
+  bumpScale: 0.038,
+  roughness: 0.24,
+  metalness: 0.05,
+  color: 0xbf7a52,
+});
+const stoneMat = new THREE.MeshStandardMaterial({
+  map: texStone,
+  bumpMap: texStone,
+  bumpScale: 0.03,
+  roughness: 0.36,
+  metalness: 0.06,
+  color: 0x868c94,
+});
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x16181c,
+  bumpMap: texWater,
+  bumpScale: 0.065,
+  roughness: 0.10,
+  metalness: 0.28,
+});
+const railMat = new THREE.MeshStandardMaterial({ color: 0x1d3328, roughness: 0.42, metalness: 0.40 });
+const treeMat = new THREE.MeshStandardMaterial({
+  map: texTree, alphaTest: 0.38, side: THREE.DoubleSide, roughness: 0.82, color: 0x7e8a66,
+});
+
+// Build Curved Ribbon Geometry for One 14m Street Segment
+const SEG_LEN = 14.0;
+const SEG_COUNT = 18; // 252m active corridor (keeps 2 full chunks behind runner for pursuing Wardens)
+const SEG_STEPS = 7;
+
+function buildRibbonStrip(z0, z1, xLeft, xRight, yLeft, yRight, uvScaleX, uvScaleZ) {
+  const cols = 2, rows = SEG_STEPS + 1;
+  const pos = new Float32Array(rows * cols * 3);
+  const uvs = new Float32Array(rows * cols * 2);
+  const idx = [];
+  for (let r = 0; r < rows; r++) {
+    const f = r / SEG_STEPS;
+    const z = THREE.MathUtils.lerp(z0, z1, f);
+    const pL = laneToWorld(z, xLeft, yLeft);
+    const pR = laneToWorld(z, xRight, yRight);
+    const b = r * 6;
+    pos[b] = pL.x; pos[b + 1] = pL.y; pos[b + 2] = pL.z;
+    pos[b + 3] = pR.x; pos[b + 4] = pR.y; pos[b + 5] = pR.z;
+    const u = r * 4;
+    uvs[u] = 0; uvs[u + 1] = z * uvScaleZ;
+    uvs[u + 2] = (xRight - xLeft) * uvScaleX; uvs[u + 3] = z * uvScaleZ;
+    if (r < SEG_STEPS) {
+      const i0 = r * 2, i1 = i0 + 1, i2 = i0 + 2, i3 = i0 + 3;
+      // z goes from z0 (+Z) to z1 (-Z), x goes from left (-X) to right (+X) -> (i0, i1, i2) has +Y upward normal!
+      idx.push(i0, i1, i2, i1, i3, i2);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// Rain Streaks (1 InstancedMesh draw call) & Pooled Particle Systems
+// ---------------------------------------------------------------------------
+const RAIN_N = 420;
+const rainGeo = new THREE.PlaneGeometry(0.016, 0.62);
+const rainMat = new THREE.MeshBasicMaterial({
+  color: 0x9fb4cc, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide,
+});
+const rainMesh = new THREE.InstancedMesh(rainGeo, rainMat, RAIN_N);
+rainMesh.frustumCulled = false;
+scene.add(rainMesh);
+const rainDrops = Array.from({ length: RAIN_N }, (_, i) => ({
+  ox: ((i * 73) % 100) / 100 * 26 - 13,
+  oy: ((i * 37) % 100) / 100 * 14,
+  oz: ((i * 53) % 100) / 100 * 38 - 30,
+  spd: 17 + (i % 7) * 1.4,
+}));
+const _dummy = new THREE.Object3D();
+
+// Pooled Wet Splash Ripples on Brick & Canal
+const RIPPLE_POOL = 42;
+const rippleGeo = new THREE.RingGeometry(0.06, 0.11, 16);
+rippleGeo.rotateX(-Math.PI / 2);
+const ripples = Array.from({ length: RIPPLE_POOL }, () => {
+  const m = new THREE.Mesh(rippleGeo, new THREE.MeshBasicMaterial({
+    color: 0xbdd4ea, transparent: true, opacity: 0, depthWrite: false,
+  }));
+  m.visible = false;
+  scene.add(m);
+  return { mesh: m, life: 0, maxLife: 0.45, maxScale: 1 };
+});
+let rippleIdx = 0;
+function spawnRipple(x, y, z, maxScale = 2.6, col = 0xbdd4ea) {
+  const r = ripples[rippleIdx = (rippleIdx + 1) % RIPPLE_POOL];
+  r.mesh.position.set(x, y + 0.015, z);
+  r.mesh.scale.setScalar(0.35);
+  r.mesh.material.color.setHex(col);
+  r.mesh.material.opacity = 0.65;
+  r.mesh.visible = true;
+  r.life = 0.001;
+  r.maxLife = 0.42;
+  r.maxScale = maxScale;
+}
+
+// Pooled 2x2 Quadrant Comic Litter Particles (sprite_litter_cutout.webp)
+const LITTER_POOL = 72;
+const litterQuadGeos = [0, 1, 2, 3].map((q) => {
+  const g = new THREE.PlaneGeometry(0.28, 0.28);
+  const u0 = (q % 2) * 0.5, v0 = q < 2 ? 0.5 : 0.0;
+  const uv = g.attributes.uv;
+  uv.setXY(0, u0, v0 + 0.5);
+  uv.setXY(1, u0 + 0.5, v0 + 0.5);
+  uv.setXY(2, u0, v0);
+  uv.setXY(3, u0 + 0.5, v0);
+  return g;
+});
+const litterMat = new THREE.MeshBasicMaterial({ map: texLitter, alphaTest: 0.35, side: THREE.DoubleSide });
+const litterParticles = Array.from({ length: LITTER_POOL }, (_, i) => {
+  const m = new THREE.Mesh(litterQuadGeos[i % 4], litterMat);
+  m.visible = false;
+  scene.add(m);
+  return { mesh: m, vel: new THREE.Vector3(), rotSpd: new THREE.Vector3(), life: 0, floorY: 0.08 };
+});
+let litterIdx = 0;
+function burstLitter(origin, count = 16) {
+  for (let i = 0; i < count; i++) {
+    const p = litterParticles[litterIdx = (litterIdx + 1) % LITTER_POOL];
+    p.mesh.position.copy(origin).add(new THREE.Vector3((Math.random() - 0.5) * 0.35, 0.35 + Math.random() * 0.45, (Math.random() - 0.5) * 0.35));
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 2.0 + Math.random() * 4.4;
+    p.vel.set(Math.cos(ang) * spd - 0.9, 3.2 + Math.random() * 4.2, Math.sin(ang) * spd + 1.2);
+    p.rotSpd.set((Math.random() - 0.5) * 11, (Math.random() - 0.5) * 11, (Math.random() - 0.5) * 11);
+    p.mesh.scale.setScalar(0.85 + Math.random() * 0.55);
+    p.floorY = origin.y + 0.05;
+    p.life = 1.65;
+    p.mesh.visible = true;
+  }
+}
+
+// Pooled Golden Coin Fountain Particles (sprite_coin_cutout.webp)
+const COIN_POOL = 56;
+const coinGeo = new THREE.PlaneGeometry(0.24, 0.24);
+const coinMat = new THREE.MeshBasicMaterial({ map: texCoin, color: 0xffd426, alphaTest: 0.35, side: THREE.DoubleSide });
+const coinParticles = Array.from({ length: COIN_POOL }, () => {
+  const m = new THREE.Mesh(coinGeo, coinMat);
+  m.visible = false;
+  scene.add(m);
+  return { mesh: m, vel: new THREE.Vector3(), spin: 0, life: 0, floorY: 0.08 };
+});
+let coinIdx = 0;
+function burstCoins(origin, count = 38) {
+  for (let i = 0; i < count; i++) {
+    const c = coinParticles[coinIdx = (coinIdx + 1) % COIN_POOL];
+    c.mesh.position.copy(origin).add(new THREE.Vector3((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.4));
+    c.vel.set(-2.2 - Math.random() * 4.2, 4.5 + Math.random() * 6.2, (Math.random() - 0.5) * 5.8);
+    c.spin = (Math.random() - 0.5) * 14;
+    c.mesh.scale.setScalar(0.85 + Math.random() * 0.5);
+    c.floorY = 0.09;
+    c.life = 1.9;
+    c.mesh.visible = true;
+  }
+}
+
+// Neon Turbo Rush 3D Additive Speed-Blur Ribbons (f_041.jpg) + Diegetic Buzz Heel Trail
+const neonRibbonMat = new THREE.MeshBasicMaterial({
+  map: texNeon, color: 0xe678ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0,
+  depthWrite: false, side: THREE.DoubleSide, fog: false,
+});
+const neonRibbonMatCyan = new THREE.MeshBasicMaterial({
+  map: texNeon, color: 0x5ee6ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0,
+  depthWrite: false, side: THREE.DoubleSide, fog: false,
+});
+const turboRibbonGroup = new THREE.Group();
+for (let i = 0; i < 2; i++) {
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 1.05), i === 0 ? neonRibbonMat : neonRibbonMatCyan);
+  plane.rotation.y = Math.PI * 0.5 + (i === 0 ? -0.14 : 0.14);
+  plane.position.set(i === 0 ? -0.22 : 0.22, 0.88 + i * 0.16, 2.9);
+  turboRibbonGroup.add(plane);
+}
+// Ground reflection streak under runner during Turbo Rush
+const groundStreakMat = new THREE.MeshBasicMaterial({
+  map: texNeon, color: 0xd868ff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0,
+  depthWrite: false, side: THREE.DoubleSide, fog: false,
+});
+const groundStreak = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 6.8), groundStreakMat);
+groundStreak.rotation.x = -Math.PI / 2;
+groundStreak.rotation.z = Math.PI / 2;
+groundStreak.position.set(0, 0.09, 3.2);
+turboRibbonGroup.add(groundStreak);
+scene.add(turboRibbonGroup);
+
+// Subtle Diegetic Buzz Heel Aura (dims as Buzz drains, zero HUD bars)
+const buzzAuraMat = new THREE.MeshBasicMaterial({
+  map: texNeon, color: 0x4ee8ff, blending: THREE.AdditiveBlending,
+  transparent: true, opacity: 0.45, depthWrite: false, side: THREE.DoubleSide,
+});
+const buzzAuraGroup = new THREE.Group();
+const buzzLeft = new THREE.Mesh(new THREE.PlaneGeometry(1.45, 0.34), buzzAuraMat);
+buzzLeft.rotation.y = Math.PI * 0.5;
+buzzLeft.position.set(-0.18, 0.24, 0.72);
+const buzzRight = buzzLeft.clone();
+buzzRight.position.x = 0.18;
+buzzAuraGroup.add(buzzLeft, buzzRight);
+scene.add(buzzAuraGroup);
+
+// Charge Bash Ring Cue around Hero when holding Space
+const chargeRingMat = new THREE.MeshBasicMaterial({
+  color: 0xffdf38, blending: THREE.AdditiveBlending, transparent: true, opacity: 0,
+  depthWrite: false, side: THREE.DoubleSide,
+});
+const chargeRing = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 24), chargeRingMat);
+chargeRing.rotation.x = -Math.PI / 2;
+scene.add(chargeRing);
+
+// ---------------------------------------------------------------------------
+// Hero, Templates, World Chunks & Pooled Flying Cans
+// ---------------------------------------------------------------------------
+const heroRoot = new THREE.Group();
+scene.add(heroRoot);
+
+const bagSocket = new THREE.Group();
+scene.add(bagSocket);
+
+let heroMixer = null;
+const heroActions = {};
+let activeAction = null;
+let heroSpineBone = null;
+
+function fadeToAction(name, dur = 0.14, loopOnce = false) {
+  const next = heroActions[name];
+  if (!next || next === activeAction) return;
+  next.reset();
+  if (loopOnce) {
+    next.setLoop(THREE.LoopOnce, 1);
+    next.clampWhenFinished = true;
+  } else {
+    next.setLoop(THREE.LoopRepeat, Infinity);
+  }
+  next.play();
+  if (activeAction) activeAction.crossFadeTo(next, dur, false);
+  activeAction = next;
+}
+
+const Templates = {};
+const flyingCans = [];
+const shatteredLocks = [];
+
+// World Spawning Containers
+const segments = [];
+const activeBins = [];
+const activeObstacles = [];
+const activeMarkets = [];
+const activeLamps = [];
+
+// Pre-built Misty Arched Stone Canal Bridge (seen on horizon in f_001.jpg & f_016.jpg)
+function createCanalBridgeMesh() {
+  const g = new THREE.Group();
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(13.2, 1.15, 4.6), stoneMat);
+  deck.position.set(-11.2, 1.65, 0);
+  const archL = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.55, 8, 18, Math.PI), stoneMat);
+  archL.position.set(-8.5, -0.35, 2.1);
+  const archR = archL.clone();
+  archR.position.z = -2.1;
+  const railF = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.75, 0.12), railMat);
+  railF.position.set(-11.2, 2.55, 2.2);
+  const railB = railF.clone();
+  railB.position.z = -2.2;
+  g.add(deck, archL, archR, railF, railB);
+  return g;
+}
+
+const lockHaloGeo = new THREE.RingGeometry(0.11, 0.165, 20);
+const lockHaloMat = new THREE.MeshBasicMaterial({
+  color: 0xffdf38, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+  transparent: true, opacity: 0.72, depthWrite: false,
+});
+
+function makeBinInstance(locked) {
+  const g = new THREE.Group();
+  const body = Templates.binBody.clone(true);
+  g.add(body);
+
+  const hinge = new THREE.Group();
+  hinge.position.set(-0.18, 0.02, 0.22);
+  const door = Templates.binDoor.clone(true);
+  hinge.add(door);
+  g.add(hinge);
+
+  const liner = Templates.liner.clone(true);
+  liner.position.set(0.08, 0.01, 0.08);
+  liner.scale.setScalar(0.25);
+  liner.visible = false;
+  g.add(liner);
+
+  let lockMesh = null;
+  let lockHalo = null;
+  if (locked) {
+    lockMesh = Templates.padlock.clone(true);
+    lockMesh.position.set(0.17, 0.56, 0.30);
+    g.add(lockMesh);
+
+    lockHalo = new THREE.Mesh(lockHaloGeo, lockHaloMat);
+    lockHalo.position.set(0.17, 0.67, 0.33);
+    g.add(lockHalo);
+  }
+  g.userData = { hinge, liner, lockMesh, lockHalo };
+  return g;
+}
+
+function makeTreeCluster() {
+  const g = new THREE.Group();
+  const c1 = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 6.2), treeMat);
+  c1.position.y = 3.05;
+  const c2 = c1.clone();
+  c2.rotation.y = Math.PI * 0.5;
+  g.add(c1, c2);
+  return g;
+}
+
+// Build one 14m corridor chunk at index `segIdx` (covering z in [-segIdx*14, -(segIdx+1)*14])
+function populateSegment(seg, segIdx) {
+  // Dispose previous dynamic ribbon geometries cleanly
+  for (const m of seg.ribbons) m.geometry.dispose();
+  seg.group.clear();
+  seg.ribbons.length = 0;
+
+  const z0 = -segIdx * SEG_LEN + 10; // starts +10m behind z=0 so behind camera is covered on frame 0
+  const z1 = z0 - SEG_LEN;
+  const zMid = (z0 + z1) * 0.5;
+  const distMid = -zMid;
+  seg.segIdx = segIdx;
+  seg.z0 = z0;
+  seg.z1 = z1;
+
+  const sRng = makeRng(BASE_SEED * 997 + segIdx * 131 + 17);
+  // Alternate between open unfenced canal drop-offs (~55% of segments!) and picturesque railed stretches
+  const hasRailing = segIdx === 0 ? false : (sRng() < 0.44);
+  seg.hasRailing = hasRailing;
+
+  // 1. Canal Water (-18.5 .. -5.22), Quay Wall (-5.35 .. -5.12), Road (-5.22 .. -1.42), Curb, Sidewalk (-1.30 .. +2.55)
+  const wGeo = buildRibbonStrip(z0, z1, -18.5, CANAL_EDGE_X + 0.12, -0.78, -0.78, 0.16, 0.16);
+  const wMesh = new THREE.Mesh(wGeo, waterMat);
+  wMesh.receiveShadow = true;
+
+  const qWallGeo = buildRibbonStrip(z0, z1, CANAL_EDGE_X - 0.04, CANAL_EDGE_X, -0.82, 0.03, 0.5, 0.32);
+  const qWallMesh = new THREE.Mesh(qWallGeo, stoneMat);
+
+  const qCapGeo = buildRibbonStrip(z0, z1, CANAL_EDGE_X - 0.05, CANAL_EDGE_X + 0.34, 0.03, 0.03, 0.5, 0.32);
+  const qCapMesh = new THREE.Mesh(qCapGeo, stoneMat);
+  qCapMesh.receiveShadow = true;
+
+  const roadGeo = buildRibbonStrip(z0, z1, CANAL_EDGE_X + 0.32, CURB_X, 0.0, 0.0, 0.38, 0.38);
+  const roadMesh = new THREE.Mesh(roadGeo, roadMat);
+  roadMesh.receiveShadow = true;
+
+  const curbFaceGeo = buildRibbonStrip(z0, z1, CURB_X, CURB_X + 0.16, 0.0, 0.065, 0.6, 0.38);
+  const curbFaceMesh = new THREE.Mesh(curbFaceGeo, stoneMat);
+
+  const swGeo = buildRibbonStrip(z0, z1, CURB_X + 0.16, 2.75, 0.065, 0.065, 0.42, 0.42);
+  const swMesh = new THREE.Mesh(swGeo, sidewalkMat);
+  swMesh.receiveShadow = true;
+
+  seg.ribbons.push(wMesh, qWallMesh, qCapMesh, roadMesh, curbFaceMesh, swMesh);
+  seg.group.add(wMesh, qWallMesh, qCapMesh, roadMesh, curbFaceMesh, swMesh);
+
+  // Optional quay low cast-iron railing + parked Dutch bike on railed segments
+  if (hasRailing) {
+    const barGeo = buildRibbonStrip(z0 - 0.4, z1 + 0.4, CANAL_EDGE_X + 0.08, CANAL_EDGE_X + 0.16, 0.68, 0.68, 1, 1);
+    const barMesh = new THREE.Mesh(barGeo, railMat);
+    seg.ribbons.push(barMesh);
+    seg.group.add(barMesh);
+    for (let p = 0; p <= 3; p++) {
+      const zp = THREE.MathUtils.lerp(z0 - 0.5, z1 + 0.5, p / 3);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.72, 6), railMat);
+      const wp = laneToWorld(zp, CANAL_EDGE_X + 0.12, 0.36);
+      post.position.copy(wp);
+      seg.group.add(post);
+    }
+    if (Templates.bike && sRng() < 0.75) {
+      const zb = zMid + (sRng() - 0.5) * 5.0;
+      const bk = Templates.bike.clone(true);
+      const wp = laneToWorld(zb, CANAL_EDGE_X + 0.38, 0.03);
+      bk.position.copy(wp);
+      bk.rotation.y = curveYaw(zb) + (sRng() < 0.5 ? 0 : Math.PI);
+      bk.rotation.z = 0.08;
+      seg.group.add(bk);
+    }
+  }
+
+  // Quay Streetlamp & Canal Elm Tree on nearly every segment so lamps + trees frame the canal like f_001.jpg & f_026.jpg!
+  if (Templates.lamp && (segIdx <= 2 || segIdx % 2 === 0)) {
+    const zl = zMid + 2.2;
+    const lamp = Templates.lamp.clone(true);
+    const wp = laneToWorld(zl, CANAL_EDGE_X + 0.28, 0.03);
+    lamp.position.copy(wp);
+    lamp.rotation.y = curveYaw(zl);
+    seg.group.add(lamp);
+    activeLamps.push({ segIdx, pos: new THREE.Vector3(wp.x, 3.85, wp.z) });
+  }
+  if (segIdx <= 2 || segIdx % 2 === 1 || sRng() < 0.55) {
+    const zt = zMid - 2.4;
+    const tree = makeTreeCluster();
+    const wp = laneToWorld(zt, CANAL_EDGE_X + 0.30, 0.02);
+    tree.position.copy(wp);
+    tree.rotation.y = sRng() * Math.PI;
+    tree.scale.setScalar(0.95 + sRng() * 0.28);
+    seg.group.add(tree);
+  }
+
+  // Misty Arched Stone Canal Bridge every 12 segments in the distance (f_001.jpg & f_016.jpg)
+  if (segIdx > 0 && segIdx % 12 === 9) {
+    const br = createCanalBridgeMesh();
+    const wp = laneToWorld(zMid, 0, 0);
+    br.position.set(curveX(zMid), 0, zMid);
+    br.rotation.y = curveYaw(zMid);
+    seg.group.add(br);
+  }
+
+  // 2. Right-Hand Townhouse Row (2 narrow houses per 14m segment) & Far-Bank Canal Houses
+  // Place Glowing Sky-Blue Corner Market every 8 segments: first at segIdx = 7 (~95m), then 15 (~207m), 23 (~319m)...
+  const isMarketSeg = segIdx >= 7 && (segIdx - 7) % 8 === 0;
+
+  for (let slot = 0; slot < 2; slot++) {
+    const zh = z0 - (slot + 0.5) * (SEG_LEN * 0.5);
+    const yaw = curveYaw(zh);
+
+    if (isMarketSeg && slot === 1 && Templates.market) {
+      const mkt = Templates.market.clone(true);
+      const wp = laneToWorld(zh, 5.75, 0.02);
+      mkt.position.copy(wp);
+      mkt.rotation.y = yaw - Math.PI * 0.5;
+      seg.group.add(mkt);
+
+      // Subtle glowing cyan rim right on the recessed wall return slot
+      const slotZ = zh + 1.35;
+      const slotWorld = laneToWorld(slotZ, 2.08, 1.32);
+      const glowRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.18, 0.26, 20),
+        new THREE.MeshBasicMaterial({ color: PALETTE.marketSign, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.85 })
+      );
+      glowRing.position.copy(slotWorld);
+      glowRing.rotation.y = yaw - Math.PI * 0.5;
+      seg.group.add(glowRing);
+
+      activeMarkets.push({
+        segIdx, z: slotZ, laneX: 1.18, used: false,
+        slotWorld, glowRing,
+      });
+      activeLamps.push({ segIdx, pos: slotWorld.clone(), isCyan: true });
+    } else if (Templates.houseA && Templates.houseB) {
+      const hTpl = ((segIdx + slot) % 2 === 0) ? Templates.houseA : Templates.houseB;
+      const house = hTpl.clone(true);
+      const wp = laneToWorld(zh, 5.85 + (sRng() - 0.5) * 0.18, 0.0);
+      house.position.copy(wp);
+      house.rotation.y = yaw - Math.PI * 0.5;
+      // Subtle crooked Amsterdam gable lean
+      house.rotation.z = (sRng() - 0.5) * 0.025;
+      house.scale.y *= 0.94 + sRng() * 0.14;
+      seg.group.add(house);
+      if (slot === 0) {
+        const sconcePos = laneToWorld(zh, 1.95, 2.75);
+        activeLamps.push({ segIdx, pos: sconcePos });
+      }
+    }
+
+    // Far-bank canal house across the dark water (x_local = -17.2m, facing +X across canal)
+    if (Templates.houseA && Templates.houseB) {
+      const fTpl = ((segIdx * 3 + slot + 1) % 2 === 0) ? Templates.houseB : Templates.houseA;
+      const farH = fTpl.clone(true);
+      const fp = laneToWorld(zh, -17.2 + (sRng() - 0.5) * 0.4, -0.5);
+      farH.position.copy(fp);
+      farH.rotation.y = yaw + Math.PI * 0.5;
+      farH.rotation.z = (sRng() - 0.5) * 0.025;
+      farH.scale.y *= 0.92 + sRng() * 0.16;
+      seg.group.add(farH);
+    }
+  }
+
+  // 3. Gameplay Spawns (Bins, Padlocked Bins, Oncoming Cyclists/Cargo-Bikes, Bollards, Wardens)
+  if (segIdx >= 1 && !isMarketSeg && Templates.binBody) {
+    const waveFactor = Math.min(5, Math.floor(distMid / 110));
+    // Spawn 1-2 authentic Amsterdam XXX bins strictly on the raised stoep sidewalk (clear of street cyclists!)
+    const binCount = (segIdx >= 2 && segIdx % 3 === 0 && sRng() < 0.55) ? 2 : 1;
+    for (let b = 0; b < binCount; b++) {
+      const zb = binCount === 1 ? (zMid + (sRng() - 0.5) * 4.2) : (z0 - 3.5 - b * 6.8);
+      const locked = segIdx >= 3 && (segIdx === 3 || sRng() < Math.min(0.56, 0.24 + waveFactor * 0.07));
+      const bLane = b === 0 ? (0.86 + sRng() * 0.48) : (0.24 + sRng() * 0.36);
+      const binMesh = makeBinInstance(locked);
+      const wp = laneToWorld(zb, bLane, 0.065);
+      binMesh.position.copy(wp);
+      // Angle bin slightly toward the approaching runner (-0.48 rad from +Z) so XXX front door & padlock read clearly
+      binMesh.rotation.y = curveYaw(zb) - 0.48;
+      seg.group.add(binMesh);
+      activeBins.push({
+        segIdx, z: zb, laneX: bLane, locked, bashed: false, savedPick: 0,
+        mesh: binMesh, doorAngle: 0, doorTarget: 0, linerProgress: 0,
+      });
+    }
+
+    // Oncoming Dutch Cyclist or Cargo-Bike strictly in the brick canal road lane (-3.18 .. -1.62)
+    if (segIdx >= 2 && (segIdx === 2 || sRng() < Math.min(0.88, 0.54 + waveFactor * 0.08))) {
+      const isCargo = segIdx >= 8 && sRng() < Math.min(0.45, 0.16 + waveFactor * 0.08);
+      const zc = zMid + (sRng() - 0.5) * 4.0;
+      const cLane = -3.16 + sRng() * 1.50;
+      const cMesh = (isCargo ? Templates.cargo : Templates.cyclist).clone(true);
+      const wp = laneToWorld(zc, cLane, 0.0);
+      cMesh.position.copy(wp);
+      cMesh.rotation.y = curveYaw(zc);
+      seg.group.add(cMesh);
+      activeObstacles.push({
+        segIdx, type: isCargo ? 'cargo' : 'cyclist',
+        z: zc, laneX: cLane, speedZ: 4.8 + waveFactor * 0.65,
+        radius: isCargo ? 0.78 : 0.56, hoppable: false, hit: false, bellRung: false,
+        mesh: cMesh, parentGroup: seg.group,
+      });
+    }
+
+    // Hoppable Amsterdam XXX Bollard on stoep sidewalk
+    if (segIdx >= 3 && segIdx % 4 === 2 && Templates.bollard) {
+      const zbo = z1 + 2.1;
+      const boLane = 0.25 + sRng() * 0.90;
+      const bol = Templates.bollard.clone(true);
+      const wp = laneToWorld(zbo, boLane, 0.065);
+      bol.position.copy(wp);
+      bol.rotation.y = curveYaw(zbo);
+      seg.group.add(bol);
+      activeObstacles.push({
+        segIdx, type: 'bollard',
+        z: zbo, laneX: boLane, speedZ: 0,
+        radius: 0.40, hoppable: true, hit: false,
+        mesh: bol, parentGroup: seg.group,
+      });
+    }
+
+    // Yellow-Vested Street Warden (BOA) patrolling sidewalk — hears lockpicking & bin bashes within 22m!
+    if ((segIdx === 4 || (segIdx >= 6 && sRng() < Math.min(0.54, 0.26 + waveFactor * 0.07))) && Templates.wardenGltf) {
+      const zw = z1 + 2.6; // Positioned cleanly near far end of segment away from bin center
+      const wClone = SkeletonUtils.clone(Templates.wardenGltf.scene);
+      celify(wClone, { outline: 0.014 });
+      const wMixer = new THREE.AnimationMixer(wClone);
+      const walkAct = Templates.wardenWalkClip ? wMixer.clipAction(Templates.wardenWalkClip) : null;
+      const runAct = Templates.wardenRunClip ? wMixer.clipAction(Templates.wardenRunClip) : null;
+      if (walkAct) walkAct.play();
+      if (runAct) runAct.timeScale = 1.16;
+      const wWrap = new THREE.Group();
+      wWrap.add(wClone);
+      const baseLane = 0.36;
+      const wp = laneToWorld(zw, baseLane, 0.065);
+      wWrap.position.copy(wp);
+      seg.group.add(wWrap);
+      activeObstacles.push({
+        segIdx, type: 'warden',
+        z: zw, laneX: baseLane, baseLane, patrolPhase: sRng() * Math.PI * 2,
+        speedZ: 0, radius: 0.50, hoppable: false, hit: false, whistled: false, chasing: false,
+        walkAct, runAct, bangEl: null,
+        mesh: wWrap, mixer: wMixer, parentGroup: seg.group,
+      });
+    }
+  }
+}
+
+function pruneSegmentEntities(oldSegIdx) {
+  for (let i = activeBins.length - 1; i >= 0; i--) if (activeBins[i].segIdx === oldSegIdx) activeBins.splice(i, 1);
+  for (let i = activeObstacles.length - 1; i >= 0; i--) {
+    if (activeObstacles[i].segIdx === oldSegIdx) {
+      if (activeObstacles[i].bangEl) activeObstacles[i].bangEl.remove();
+      activeObstacles.splice(i, 1);
+    }
+  }
+  for (let i = activeMarkets.length - 1; i >= 0; i--) if (activeMarkets[i].segIdx === oldSegIdx) activeMarkets.splice(i, 1);
+  for (let i = activeLamps.length - 1; i >= 0; i--) if (activeLamps[i].segIdx === oldSegIdx) activeLamps.splice(i, 1);
+}
+
+// ---------------------------------------------------------------------------
+// Persistent Save, 5-Track Upgrade Shop & Input
+// ---------------------------------------------------------------------------
+const CRUISE_SPEED = 11.0;
+const DEPOSIT_SPEED = 3.6;
+const WARDEN_CHASE_SPEED = 5.8;
+const WARDEN_AGRO_DIST = 22.0;
+
+const STORAGE_KEY = 'statiegeld_rush_save_v1';
+const FRESH_RUN = Q.has('fresh');
+
+const UPGRADE_DEFS = [
+  {
+    id: 'lockpick',
+    name: 'Hairpin \u2192 Pro Lockpick',
+    costs: [90, 210, 450, 850, 1500],
+    desc: (lv) => {
+      const times = [1.70, 1.42, 1.18, 0.96, 0.78, 0.65];
+      return lv < 5 ? `Pick time: ${times[lv].toFixed(2)}s \u2192 ${times[lv + 1].toFixed(2)}s` : `MAX: ${times[5].toFixed(2)}s instant pick`;
+    },
+  },
+  {
+    id: 'bag',
+    name: 'Bigger & Tougher Bag',
+    costs: [75, 195, 420, 800, 1400],
+    desc: (lv) => {
+      const caps = [12, 18, 25, 33, 42, 52];
+      return lv < 5 ? `Bag cap: ${caps[lv]} \u2192 ${caps[lv + 1]} cans + less turn drag & spill` : `MAX: ${caps[5]} cans, armored weave`;
+    },
+  },
+  {
+    id: 'sneakers',
+    name: 'Grippy Sneakers',
+    costs: [90, 210, 450, 850, 1500],
+    desc: (lv) => lv < 5 ? `+12% sharper lane weave & curb hop recovery (Lv ${lv} \u2192 ${lv + 1})` : 'MAX: razor-sharp canal agility',
+  },
+  {
+    id: 'hoodie',
+    name: 'Warm Hoodie & Thermos',
+    costs: [75, 180, 390, 750, 1350],
+    desc: (lv) => lv < 5 ? `-11% cold-rain Buzz drain & cushioned bike hits (Lv ${lv} \u2192 ${lv + 1})` : 'MAX: stormproof street warmth',
+  },
+  {
+    id: 'eye',
+    name: "Scavenger's Eye",
+    costs: [120, 270, 550, 1050, 1800],
+    desc: (lv) => lv < 5 ? `More cans per bin & higher \u20AC0.25 tallboy chance (Lv ${lv} \u2192 ${lv + 1})` : 'MAX: +3 cans/bin & \u20AC0.25 jackpots',
+  },
+];
+
+const Save = {
+  walletCents: 0,
+  upg: { lockpick: 0, bag: 0, sneakers: 0, hoodie: 0, eye: 0 },
+};
+
+function loadSave() {
+  if (FRESH_RUN) return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (typeof data.walletCents === 'number' && isFinite(data.walletCents)) {
+      Save.walletCents = Math.max(0, Math.round(data.walletCents));
+    }
+    if (data.upg && typeof data.upg === 'object') {
+      for (const d of UPGRADE_DEFS) {
+        const v = data.upg[d.id];
+        if (typeof v === 'number') Save.upg[d.id] = Math.max(0, Math.min(5, v | 0));
+      }
+    }
+  } catch (_) {}
+}
+function persistSave() {
+  if (FRESH_RUN) return;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Save)); } catch (_) {}
+}
+loadSave();
+
+function fmtEuro(cents) {
+  return '\u20AC' + (Math.max(0, Math.round(cents)) / 100).toFixed(2);
+}
+function getPickDuration() {
+  return [1.70, 1.42, 1.18, 0.96, 0.78, 0.65][Save.upg.lockpick] || 1.70;
+}
+function getBagCap() {
+  return [12, 18, 25, 33, 42, 52][Save.upg.bag] || 12;
+}
+function getBagDragPerCan() {
+  return 0.036 * Math.pow(0.85, Save.upg.bag);
+}
+function getBikeSpillCount() {
+  return [3, 2, 2, 1, 0, 0][Save.upg.bag] ?? 3;
+}
+function getSteerMult() {
+  return 1 + Save.upg.sneakers * 0.11;
+}
+function getSteerDamp() {
+  return 11.8 * (1 + Save.upg.sneakers * 0.12);
+}
+function getHopVel() {
+  return 8.35 + Save.upg.sneakers * 0.22;
+}
+function getBuzzDrainMult() {
+  return Math.pow(0.89, Save.upg.hoodie);
+}
+function getBikeBuzzLoss() {
+  return 0.22 * Math.pow(0.86, Save.upg.hoodie);
+}
+function getBonusCans() {
+  return [0, 1, 1, 2, 2, 3][Save.upg.eye] || 0;
+}
+function getBigCanChance(locked) {
+  if (locked) return Math.min(0.85, 0.38 + Save.upg.eye * 0.10);
+  return [0.0, 0.12, 0.22, 0.34, 0.45, 0.55][Save.upg.eye] || 0.0;
+}
+
+const keys = new Set();
+let spaceJustPressed = false;
+let spaceJustReleased = false;
+let restartJustPressed = false;
+let enterJustPressed = false;
+let tabJustPressed = false;
+let digitJustPressed = -1;
+
+addEventListener('keydown', (e) => {
+  if (!keys.has(e.code)) {
+    if (e.code === 'Space') spaceJustPressed = true;
+    if (e.code === 'KeyR') restartJustPressed = true;
+    if (e.code === 'Enter') enterJustPressed = true;
+    if (e.code === 'Tab') tabJustPressed = true;
+    if (e.code >= 'Digit1' && e.code <= 'Digit5') {
+      const idx = +e.code.slice(5) - 1;
+      if (S.shopOpen) buyUpgrade(idx);
+      else digitJustPressed = idx;
+    }
+  }
+  keys.add(e.code);
+  if (['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+});
+addEventListener('keyup', (e) => {
+  if (e.code === 'Space' && keys.has('Space')) spaceJustReleased = true;
+  keys.delete(e.code);
+});
+
+let prevPadBash = false, prevPadRestart = false;
+function readInput() {
+  const pad = navigator.getGamepads?.()[0];
+  const ax = pad ? pad.axes[0] : 0;
+  const padBash = !!(pad?.buttons[0]?.pressed || pad?.buttons[2]?.pressed);
+  const padHop = !!(pad?.buttons[1]?.pressed || pad?.buttons[3]?.pressed);
+  const padStart = !!(pad?.buttons[9]?.pressed);
+
+  if (padBash && !prevPadBash) spaceJustPressed = true;
+  if (!padBash && prevPadBash) spaceJustReleased = true;
+  if (padStart && !prevPadRestart) restartJustPressed = true;
+  prevPadBash = padBash;
+  prevPadRestart = padStart;
+
+  const steer = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0)
+              - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0)
+              + (Math.abs(ax) > 0.18 ? ax : 0);
+  return {
+    steer: THREE.MathUtils.clamp(steer, -1, 1),
+    hop: keys.has('KeyW') || keys.has('ArrowUp') || padHop,
+    bashHeld: keys.has('Space') || padBash,
+    bashDown: spaceJustPressed,
+    bashUp: spaceJustReleased,
+    start: enterJustPressed || padStart,
+    restart: restartJustPressed,
+    tab: tabJustPressed,
+    digit: digitJustPressed,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Game State, HUD, Projected World Popups & Upgrade Shop UI
+// ---------------------------------------------------------------------------
+const titleEl = document.getElementById('titleOverlay');
+const titleShopBtn = document.getElementById('titleShopBtn');
+const counterEl = document.getElementById('counter');
+const heldEl = document.getElementById('heldVal');
+const walletEl = document.getElementById('walletVal');
+const buzzTrackEl = document.getElementById('buzzTrack');
+const buzzFillEl = document.getElementById('buzzFill');
+const lockpickHudEl = document.getElementById('lockpickHud');
+const lockpickArcEl = document.getElementById('lockpickArc');
+const lockpickLabelEl = document.getElementById('lockpickLabel');
+const popupsEl = document.getElementById('popups');
+const shopOverlayEl = document.getElementById('shopOverlay');
+const runBannerEl = document.getElementById('runBanner');
+const runSubEl = document.getElementById('runSub');
+const shopWalletEl = document.getElementById('shopWalletVal');
+const upgListEl = document.getElementById('upgList');
+const runAgainBtn = document.getElementById('runAgainBtn');
+const resetSaveBtn = document.getElementById('resetSaveBtn');
+
+const S = {
+  ready: false,
+  phase: AUTOSTART ? 'play' : 'title',
+  shopOpen: false,
+  overDelay: 0,
+  reason: '',
+  t: 0,
+  z: 0,
+  laneX: 0.45,
+  velLane: 0,
+  y: 0,
+  velY: 0,
+  grounded: true,
+  speed: CRUISE_SPEED,
+  baseSpeed: CRUISE_SPEED,
+  heldCans: 0,
+  heldQueue: [],
+  runBankedCans: 0,
+  runEarnedCents: 0,
+  lostCans: 0,
+  buzz: 1.0,
+  cashFlash: 0,
+  depositTimer: 0,
+  pickingBin: null,
+  pickProgress: 0,
+  pickHoldTime: 0,
+  bashBuffer: 0,
+  wave: 1,
+  bagScale: 1.0,
+  bagWobble: 0,
+  bagWobbleVel: 0,
+  camShake: 0,
+  stepTimer: 0,
+  actionTimer: 0,
+  fullHintCooldown: 0,
+  nextSegIdx: 0,
+  worldPos: new THREE.Vector3(),
+};
+
+const activePopups = [];
+const _projVec = new THREE.Vector3();
+
+function projectToScreen(worldPos) {
+  _projVec.copy(worldPos).project(camera);
+  if (_projVec.z > 1.0 || _projVec.z < -1.0) return null;
+  return {
+    x: (_projVec.x * 0.5 + 0.5) * innerWidth,
+    y: (-_projVec.y * 0.5 + 0.5) * innerHeight,
+  };
+}
+
+function spawnWorldPopup(worldPos, text, color = '#ffdf38', subText = '', scale = 1.0) {
+  const el = document.createElement('div');
+  el.className = 'world-pop';
+  el.style.color = color;
+  el.style.fontSize = `${Math.round(23 * scale)}px`;
+  el.innerHTML = subText
+    ? `<div>${text}</div><div style="font-size:12px;color:#8ef4ff;letter-spacing:0.06em">${subText}</div>`
+    : text;
+  popupsEl.appendChild(el);
+  activePopups.push({
+    el,
+    pos: worldPos.clone(),
+    vy: 1.55,
+    age: 0,
+    dur: 1.15,
+  });
+}
+
+function syncHudCounters(pulseBag = false, pulseCash = false) {
+  const cap = getBagCap();
+  heldEl.textContent = `${S.heldCans}/${cap}`;
+  heldEl.classList.toggle('full', S.heldCans >= cap);
+  walletEl.textContent = fmtEuro(Save.walletCents);
+  shopWalletEl.textContent = fmtEuro(Save.walletCents);
+  if (pulseBag) {
+    heldEl.classList.add('pulse');
+    setTimeout(() => heldEl.classList.remove('pulse'), 140);
+  }
+  if (pulseCash) {
+    walletEl.classList.add('pulse');
+    setTimeout(() => walletEl.classList.remove('pulse'), 180);
+  }
+}
+
+function renderShopUI() {
+  shopWalletEl.textContent = fmtEuro(Save.walletCents);
+  if (S.phase === 'over') {
+    if (S.reason === 'busted') {
+      runBannerEl.textContent = 'BUSTED BY BOA!';
+      runBannerEl.style.color = '#ff5a67';
+    } else if (S.reason === 'canal') {
+      runBannerEl.textContent = 'PLUNGED IN THE GRACHT!';
+      runBannerEl.style.color = '#6fdcff';
+    } else {
+      runBannerEl.textContent = 'FROZE OUT — ZERO BUZZ!';
+      runBannerEl.style.color = '#ffb84d';
+    }
+    const lostMsg = S.lostCans > 0 ? ` \u00B7 Lost ${S.lostCans} unbanked can${S.lostCans === 1 ? '' : 's'}` : '';
+    runSubEl.textContent = `Banked ${S.runBankedCans} cans (+${fmtEuro(S.runEarnedCents)})${lostMsg}`;
+    runAgainBtn.textContent = 'RUN AGAIN [ R / ENTER ]';
+  } else {
+    runBannerEl.textContent = 'AMSTERDAM SCAVENGER SHOP';
+    runBannerEl.style.color = '#8ef4ff';
+    runSubEl.textContent = 'Bank cans at glowing Corner Markets to keep your Euros across runs!';
+    runAgainBtn.textContent = 'HIT THE STREET [ R / ENTER ]';
+  }
+
+  upgListEl.innerHTML = '';
+  UPGRADE_DEFS.forEach((u, idx) => {
+    const lv = Save.upg[u.id] || 0;
+    const isMax = lv >= 5;
+    const cost = isMax ? 0 : u.costs[lv];
+    const canAfford = !isMax && Save.walletCents >= cost;
+
+    const row = document.createElement('div');
+    row.className = 'upg-row';
+
+    const info = document.createElement('div');
+    info.innerHTML = `<div class="upg-title"><span class="upg-key">${idx + 1}</span>${u.name}</div><div class="upg-desc">${u.desc(lv)}</div>`;
+
+    const pips = document.createElement('div');
+    pips.className = 'upg-pips';
+    for (let p = 0; p < 5; p++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip' + (p < lv ? ' on' : '');
+      pips.appendChild(pip);
+    }
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'upg-buy' + (isMax ? ' maxed' : '');
+    btn.textContent = isMax ? 'MAXED' : fmtEuro(cost);
+    btn.disabled = !canAfford;
+    btn.addEventListener('click', () => buyUpgrade(idx));
+
+    row.append(info, pips, btn);
+    upgListEl.appendChild(row);
+  });
+}
+
+function openShop(open) {
+  S.shopOpen = open;
+  shopOverlayEl.classList.toggle('open', open);
+  if (open) renderShopUI();
+}
+
+function buyUpgrade(idx) {
+  const u = UPGRADE_DEFS[idx];
+  if (!u) return false;
+  const lv = Save.upg[u.id] || 0;
+  if (lv >= 5) return false;
+  const cost = u.costs[lv];
+  if (Save.walletCents < cost) return false;
+  Save.walletCents -= cost;
+  Save.upg[u.id] = lv + 1;
+  persistSave();
+  AudioSys.unlock();
+  AudioSys.play('upgrade', 0.55, 1.0 + lv * 0.05);
+  syncHudCounters(false, true);
+  renderShopUI();
+  return true;
+}
+
+function startOrRestartFromUI() {
+  AudioSys.unlock();
+  openShop(false);
+  if (S.phase === 'title') {
+    S.phase = 'play';
+    updatePhaseUI();
+    syncHudCounters();
+    fadeToAction('run', 0.15);
+  } else {
+    S.phase = 'play';
+    updatePhaseUI();
+    resetRun(0);
+  }
+}
+
+titleShopBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  AudioSys.unlock();
+  openShop(!S.shopOpen);
+});
+runAgainBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  startOrRestartFromUI();
+});
+resetSaveBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  Save.walletCents = 0;
+  for (const u of UPGRADE_DEFS) Save.upg[u.id] = 0;
+  persistSave();
+  syncHudCounters();
+  renderShopUI();
+});
+
+function updatePhaseUI() {
+  if (S.phase === 'title') {
+    titleEl.classList.remove('hidden');
+    counterEl.classList.remove('visible');
+    titleShopBtn.textContent = `[ TAB ] GEAR SHOP (${fmtEuro(Save.walletCents)})`;
+  } else {
+    titleEl.classList.add('hidden');
+    counterEl.classList.add('visible');
+  }
+}
+syncHudCounters();
+updatePhaseUI();
+
+function currentSegmentHasRailing(z) {
+  for (const seg of segments) {
+    if (z <= seg.z0 && z >= seg.z1) return seg.hasRailing;
+  }
+  return false;
+}
+
+// Read-only state contract for play.mjs & side-by-side harness
+window.__game = {
+  get state() {
+    const zNow = S.z;
+    return {
+      ready: S.ready,
+      phase: S.phase,
+      shopOpen: S.shopOpen,
+      reason: S.reason,
+      t: +S.t.toFixed(3),
+      dist: +(-zNow).toFixed(2),
+      x: +S.worldPos.x.toFixed(3),
+      y: +S.y.toFixed(3),
+      z: +zNow.toFixed(3),
+      laneX: +S.laneX.toFixed(3),
+      canalEdgeX: CANAL_EDGE_X,
+      hasRailing: currentSegmentHasRailing(zNow),
+      wallX: WALL_X,
+      speed: +S.speed.toFixed(2),
+      grounded: S.grounded,
+      heldCans: S.heldCans,
+      bagCap: getBagCap(),
+      bankedCans: S.runBankedCans,
+      walletCents: Save.walletCents,
+      walletEuro: fmtEuro(Save.walletCents),
+      runEarnedCents: S.runEarnedCents,
+      buzz: +S.buzz.toFixed(3),
+      picking: !!S.pickingBin,
+      pickProgress: +S.pickProgress.toFixed(3),
+      depositing: S.depositTimer > 0,
+      wave: S.wave,
+      upgrades: { ...Save.upg },
+      bins: activeBins
+        .filter(b => !b.bashed && b.z < zNow + 2.0 && b.z > zNow - 42)
+        .sort((a, b) => b.z - a.z)
+        .map(b => ({ dz: +(zNow - b.z).toFixed(2), laneX: +b.laneX.toFixed(2), locked: b.locked })),
+      obstacles: activeObstacles
+        .filter(o => !o.hit && o.z < zNow + 16.0 && o.z > zNow - 48)
+        .sort((a, b) => Math.abs(zNow - a.z) - Math.abs(zNow - b.z))
+        .map(o => ({
+          type: o.type, dz: +(zNow - o.z).toFixed(2), laneX: +o.laneX.toFixed(2),
+          radius: o.radius, hoppable: o.hoppable, chasing: !!o.chasing,
+        })),
+      returnSlots: activeMarkets
+        .filter(m => !m.used && m.z < zNow + 3.0 && m.z > zNow - 65)
+        .sort((a, b) => b.z - a.z)
+        .map(m => ({ dz: +(zNow - m.z).toFixed(2), laneX: +m.laneX.toFixed(2) })),
+    };
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Actions: Bin Bash, Lockpick Agro, 0.5s Euro Cash-In & Run End / Reset
+// ---------------------------------------------------------------------------
+function launchCanArc(startWorld, cents = 15, delay = 0) {
+  const tpl = cents >= 25 ? (Templates.bigCan || Templates.can) : Templates.can;
+  if (!tpl) return;
+  const mesh = tpl.clone(true);
+  mesh.position.copy(startWorld);
+  scene.add(mesh);
+  flyingCans.push({
+    mode: 'toBag',
+    cents,
+    mesh,
+    start: startWorld.clone(),
+    targetWorld: null,
+    apexOffset: new THREE.Vector3((Math.random() - 0.5) * 0.85, 1.85 + Math.random() * 0.95, -0.7 - Math.random() * 1.1),
+    t: -delay,
+    dur: 0.42 + Math.random() * 0.13,
+    spin: new THREE.Vector3(9 + Math.random() * 8, 7 + Math.random() * 8, 6),
+  });
+}
+
+function launchDepositCan(targetWorld, cents = 15, delay = 0) {
+  const tpl = cents >= 25 ? (Templates.bigCan || Templates.can) : Templates.can;
+  if (!tpl) return;
+  const mesh = tpl.clone(true);
+  mesh.position.copy(bagSocket.position);
+  scene.add(mesh);
+  flyingCans.push({
+    mode: 'toSlot',
+    cents,
+    mesh,
+    start: bagSocket.position.clone().add(new THREE.Vector3(0, 0.2, 0)),
+    targetWorld: targetWorld.clone(),
+    apexOffset: new THREE.Vector3(0.35 + Math.random() * 0.3, 0.55 + Math.random() * 0.4, -0.25),
+    t: -delay,
+    dur: 0.27,
+    spin: new THREE.Vector3(12, 10, 8),
+  });
+}
+
+function alertNearbyWardens(sourceZ, range = WARDEN_AGRO_DIST) {
+  for (const o of activeObstacles) {
+    if (o.type !== 'warden' || o.hit || o.chasing) continue;
+    const dist = Math.abs(o.z - sourceZ);
+    if (dist <= range) {
+      o.chasing = true;
+      o.whistled = true;
+      AudioSys.play('whistle', 0.48, 1.02);
+      if (o.runAct) {
+        o.runAct.reset().play();
+        if (o.walkAct) o.walkAct.crossFadeTo(o.runAct, 0.15, false);
+      }
+      if (!o.bangEl) {
+        const b = document.createElement('div');
+        b.className = 'warden-bang';
+        b.textContent = '!';
+        popupsEl.appendChild(b);
+        o.bangEl = b;
+      }
+    }
+  }
+}
+
+function stopLockpick() {
+  if (S.pickingBin) {
+    const lk = S.pickingBin.mesh.userData.lockMesh;
+    if (lk) lk.rotation.set(0, 0, 0);
+  }
+  S.pickingBin = null;
+  S.pickProgress = 0;
+  S.pickHoldTime = 0;
+  lockpickHudEl.classList.remove('active');
+  AudioSys.stopLoop('lockpick');
+}
+
+function triggerGameOver(reason) {
+  if (S.phase === 'over') return;
+  stopLockpick();
+  S.phase = 'over';
+  S.reason = reason;
+  S.overDelay = 0.72;
+  S.lostCans = S.heldCans;
+  if (S.heldCans > 0) {
+    burstLitter(S.worldPos, Math.min(24, 6 + S.heldCans * 2));
+    S.heldCans = 0;
+    S.heldQueue.length = 0;
+    syncHudCounters();
+  }
+  // Clear pending in-flight bag cans
+  for (let i = flyingCans.length - 1; i >= 0; i--) {
+    if (flyingCans[i].mode === 'toBag') {
+      scene.remove(flyingCans[i].mesh);
+      flyingCans.splice(i, 1);
+    }
+  }
+  updatePhaseUI();
+}
+
+function executeBinBash(bin, wasLocked) {
+  bin.bashed = true;
+  bin.doorTarget = -1.92;
+  bin.linerProgress = 0.01;
+  bin.mesh.userData.liner.visible = true;
+  if (bin.mesh.userData.lockHalo) bin.mesh.userData.lockHalo.visible = false;
+
+  const binWorld = bin.mesh.position.clone();
+  burstLitter(binWorld, wasLocked ? 24 : 16);
+
+  if (bin.locked && bin.mesh.userData.lockMesh) {
+    const lk = bin.mesh.userData.lockMesh;
+    const lkWorld = lk.getWorldPosition(new THREE.Vector3());
+    lk.visible = false;
+    const flyLk = Templates.padlock.clone(true);
+    flyLk.position.copy(lkWorld);
+    scene.add(flyLk);
+    shatteredLocks.push({ mesh: flyLk, vel: new THREE.Vector3(-2.6, 5.4, 2.2), life: 1.2 });
+    AudioSys.play('padlock', 0.64, 0.98 + Math.random() * 0.08);
+  }
+  AudioSys.play('bash', 0.56, 0.95 + Math.random() * 0.12);
+
+  // Alert nearby BOA Wardens within 16m on loud bin bash!
+  alertNearbyWardens(bin.z, 16.0);
+
+  const cap = getBagCap();
+  const inFlight = flyingCans.filter(fc => fc.mode === 'toBag').length;
+  const avail = Math.max(0, cap - (S.heldCans + inFlight));
+
+  const rawYield = (bin.locked ? (6 + ((Math.abs(bin.segIdx) * 3) % 4)) : (3 + ((Math.abs(bin.segIdx) * 5) % 3))) + getBonusCans();
+  const toSpawn = Math.min(avail, rawYield);
+
+  if (avail <= 0 && S.fullHintCooldown <= 0) {
+    S.fullHintCooldown = 1.2;
+    spawnWorldPopup(S.worldPos.clone().add(new THREE.Vector3(0, 2.05, 0)), 'BAG FULL!', '#ffdf38', 'FIND A CORNER MARKET', 0.88);
+  }
+
+  const bigChance = getBigCanChance(bin.locked);
+  for (let i = 0; i < toSpawn; i++) {
+    const cents = rand() < bigChance ? 25 : 15;
+    launchCanArc(binWorld.clone().add(new THREE.Vector3(-0.15, 0.82, 0)), cents, i * 0.052);
+  }
+  if (toSpawn < rawYield && toSpawn > 0 && S.fullHintCooldown <= 0) {
+    S.fullHintCooldown = 1.2;
+    spawnWorldPopup(binWorld.clone().add(new THREE.Vector3(0, 1.65, 0)), 'BAG FULL!', '#ffdf38', '', 0.82);
+  }
+
+  S.buzz = Math.min(1.0, S.buzz + (bin.locked ? 0.18 : 0.10));
+  S.camShake = Math.max(S.camShake, wasLocked ? 0.32 : 0.18);
+  fadeToAction(wasLocked ? 'heavyBash' : 'bash', 0.06, true);
+  S.actionTimer = wasLocked ? 0.42 : 0.32;
+}
+
+function executeMarketCashIn(mkt) {
+  mkt.used = true;
+  mkt.glowRing.material.opacity = 0.22;
+
+  // Settle any cans still mid-flight into the bag so every collected can counts!
+  for (let i = flyingCans.length - 1; i >= 0; i--) {
+    if (flyingCans[i].mode === 'toBag') {
+      if (S.heldQueue.length < getBagCap()) S.heldQueue.push(flyingCans[i].cents);
+      scene.remove(flyingCans[i].mesh);
+      flyingCans.splice(i, 1);
+    }
+  }
+  S.heldCans = S.heldQueue.length;
+
+  const count = S.heldQueue.length;
+  S.buzz = 1.0;
+  S.wave += 1;
+
+  if (count > 0) {
+    const rawCents = S.heldQueue.reduce((sum, v) => sum + v, 0);
+    const mult = count >= 20 ? 1.50 : (count >= 10 ? 1.25 : 1.0);
+    const payoutCents = Math.round(rawCents * mult);
+
+    // Launch visual cans arcing out of hero's shrinking bag straight into the glowing slot during the 0.5s beat!
+    const visCount = Math.min(count, 14);
+    for (let i = 0; i < visCount; i++) {
+      launchDepositCan(mkt.slotWorld, S.heldQueue[i], (i / visCount) * 0.30);
+    }
+
+    S.heldQueue.length = 0;
+    S.heldCans = 0;
+    S.runBankedCans += count;
+    S.runEarnedCents += payoutCents;
+    Save.walletCents += payoutCents;
+    persistSave();
+
+    S.depositTimer = 0.52; // Brief 0.5s deposit slowdown alongside the Corner Market slot!
+    S.cashFlash = 0.55;
+    S.bagWobbleVel += 11;
+    S.camShake = 0.22;
+
+    syncHudCounters(true, true);
+    burstCoins(mkt.slotWorld, Math.min(48, 18 + count * 2));
+    AudioSys.play('register', 0.68, 1.0);
+
+    const sub = mult >= 1.5 ? '1.50x MEGA HAUL!' : (mult >= 1.25 ? '1.25x BULK BONUS!' : `${count} CANS BANKED`);
+    spawnWorldPopup(mkt.slotWorld.clone().add(new THREE.Vector3(-0.3, 0.55, 0)), `+${fmtEuro(payoutCents)}`, '#ffe45c', sub, 1.16);
+  } else {
+    S.cashFlash = 0.25;
+    burstCoins(mkt.slotWorld, 8);
+    AudioSys.play('can', 0.35, 1.25);
+    spawnWorldPopup(mkt.slotWorld.clone().add(new THREE.Vector3(-0.3, 0.45, 0)), 'BUZZ REFILLED!', '#8ef4ff', '', 0.85);
+  }
+}
+
+function resetRun(initialDist = 0) {
+  stopLockpick();
+  openShop(false);
+  rand = makeRng(BASE_SEED);
+  resetCurvePhases(BASE_SEED);
+
+  for (const o of activeObstacles) {
+    if (o.bangEl) o.bangEl.remove();
+  }
+  for (const p of activePopups) p.el.remove();
+  activePopups.length = 0;
+
+  activeBins.length = 0;
+  activeObstacles.length = 0;
+  activeMarkets.length = 0;
+  activeLamps.length = 0;
+  for (const fc of flyingCans) scene.remove(fc.mesh);
+  flyingCans.length = 0;
+  for (const sl of shatteredLocks) scene.remove(sl.mesh);
+  shatteredLocks.length = 0;
+
+  const startSeg = Math.max(0, Math.floor(initialDist / SEG_LEN) - 1);
+  for (let i = 0; i < SEG_COUNT; i++) {
+    populateSegment(segments[i], startSeg + i);
+  }
+  S.nextSegIdx = startSeg + SEG_COUNT;
+
+  S.t = 0;
+  S.z = -initialDist;
+  S.laneX = 0.55;
+  S.velLane = 0;
+  S.y = 0.065;
+  S.velY = 0;
+  S.grounded = true;
+  S.baseSpeed = CRUISE_SPEED;
+  S.speed = CRUISE_SPEED;
+  S.heldCans = 0;
+  S.heldQueue.length = 0;
+  S.runBankedCans = 0;
+  S.runEarnedCents = 0;
+  S.lostCans = 0;
+  S.buzz = 1.0;
+  S.cashFlash = 0;
+  S.depositTimer = 0;
+  S.bashBuffer = 0;
+  S.wave = 1 + Math.floor(initialDist / 115);
+  S.bagScale = 1.0;
+  S.bagWobble = 0;
+  S.bagWobbleVel = 0;
+  S.camShake = 0;
+  S.actionTimer = 0;
+  S.overDelay = 0;
+  S.fullHintCooldown = 0;
+  S.reason = '';
+
+  syncHudCounters();
+
+  if (heroActions.run) {
+    activeAction = null;
+    fadeToAction(S.phase === 'title' ? 'idle' : 'run', 0.01);
+  }
+
+  // Stage natural mid-stride state when ?x=<meters> lands directly at a bin or Corner Market
+  if (initialDist > 1) {
+    const startHeld = Math.min(getBagCap(), Math.max(4, Math.floor((initialDist % 98) / 7)));
+    for (let i = 0; i < startHeld; i++) S.heldQueue.push(15);
+    S.heldCans = S.heldQueue.length;
+    syncHudCounters();
+    for (const b of activeBins) {
+      if (Math.abs(S.z - b.z) < 3.4 && !b.bashed) {
+        S.laneX = THREE.MathUtils.clamp(b.laneX - 0.52, -0.5, 1.4);
+        executeBinBash(b, b.locked);
+        b.doorAngle = -1.72;
+        b.linerProgress = 1.0;
+        updateParticlesAndProps(0.22);
+        break;
+      }
+    }
+    for (const m of activeMarkets) {
+      if (Math.abs(S.z - m.z) < 4.5 && !m.used) {
+        S.heldQueue = Array(12).fill(15);
+        S.heldCans = 12;
+        S.laneX = 0.95;
+        executeMarketCashIn(m);
+        updateParticlesAndProps(0.18);
+        break;
+      }
+    }
+  }
+
+  syncHeroAndCamera(1.0, true);
+}
+
+// ---------------------------------------------------------------------------
+// Per-Frame Particle, Prop, Popup & Camera Updates
+// ---------------------------------------------------------------------------
+function updateParticlesAndProps(dt) {
+  // Animate bin doors swinging on left hinge, spilled blue liner, and pulsing padlock beacon
+  for (const b of activeBins) {
+    if (b.bashed) {
+      b.doorAngle = THREE.MathUtils.damp(b.doorAngle, b.doorTarget, 14, dt);
+      b.mesh.userData.hinge.rotation.y = b.doorAngle;
+      if (b.linerProgress < 1) {
+        b.linerProgress = Math.min(1, b.linerProgress + dt * 4.2);
+        const ease = 1 - Math.pow(1 - b.linerProgress, 3);
+        const ln = b.mesh.userData.liner;
+        ln.scale.setScalar(0.25 + 0.75 * ease);
+        ln.position.set(0.10 * ease, 0.01, 0.08 + 0.38 * ease);
+      }
+    } else if (b.locked && b.mesh.userData.lockHalo) {
+      b.mesh.userData.lockHalo.visible = (S.pickingBin !== b);
+      const pulse = 0.88 + Math.sin(S.t * 5.5 + b.z) * 0.16;
+      b.mesh.userData.lockHalo.scale.setScalar(pulse);
+    }
+  }
+
+  // Flying Statiegeld cans (toBag: bin -> bagSocket | toSlot: bagSocket -> Corner Market slot)
+  const bagTarget = bagSocket.position.clone().add(new THREE.Vector3(0, 0.22, 0));
+  for (let i = flyingCans.length - 1; i >= 0; i--) {
+    const fc = flyingCans[i];
+    fc.t += dt;
+    if (fc.t < 0) {
+      fc.mesh.visible = false;
+      if (fc.mode === 'toSlot') fc.start.copy(bagTarget);
+      continue;
+    }
+    fc.mesh.visible = true;
+    const dest = fc.mode === 'toSlot' ? fc.targetWorld : bagTarget;
+    const u = Math.min(1, fc.t / fc.dur);
+    const mid = fc.start.clone().lerp(dest, 0.45).add(fc.apexOffset);
+    const p0 = fc.start.clone().lerp(mid, u);
+    const p1 = mid.clone().lerp(dest, u);
+    fc.mesh.position.copy(p0.lerp(p1, u));
+    fc.mesh.rotation.x += fc.spin.x * dt;
+    fc.mesh.rotation.y += fc.spin.y * dt;
+    fc.mesh.rotation.z += fc.spin.z * dt;
+    if (u >= 1) {
+      scene.remove(fc.mesh);
+      flyingCans.splice(i, 1);
+      if (fc.mode === 'toBag') {
+        if (S.heldQueue.length < getBagCap()) {
+          S.heldQueue.push(fc.cents);
+          S.heldCans = S.heldQueue.length;
+          syncHudCounters(true, false);
+          S.bagWobbleVel += 6.5;
+          AudioSys.play('can', 0.42, (fc.cents >= 25 ? 1.18 : 0.96) + Math.min(0.28, S.heldCans * 0.012));
+        }
+      } else {
+        S.bagWobbleVel += 3.2;
+      }
+    }
+  }
+
+  // Shattered padlocks
+  for (let i = shatteredLocks.length - 1; i >= 0; i--) {
+    const sl = shatteredLocks[i];
+    sl.life -= dt;
+    sl.vel.y -= 18 * dt;
+    sl.mesh.position.addScaledVector(sl.vel, dt);
+    sl.mesh.rotation.x += 9 * dt;
+    sl.mesh.rotation.z += 11 * dt;
+    if (sl.life <= 0) {
+      scene.remove(sl.mesh);
+      shatteredLocks.splice(i, 1);
+    }
+  }
+
+  // Comic litter bursts
+  for (const p of litterParticles) {
+    if (p.life <= 0) continue;
+    p.life -= dt;
+    if (p.life <= 0) { p.mesh.visible = false; continue; }
+    p.vel.y -= 15.5 * dt;
+    p.mesh.position.addScaledVector(p.vel, dt);
+    if (p.mesh.position.y < p.floorY) {
+      p.mesh.position.y = p.floorY;
+      p.vel.y *= -0.35;
+      p.vel.x *= 0.72;
+      p.vel.z *= 0.72;
+      p.rotSpd.multiplyScalar(0.6);
+    }
+    p.mesh.rotation.x += p.rotSpd.x * dt;
+    p.mesh.rotation.y += p.rotSpd.y * dt;
+    p.mesh.rotation.z += p.rotSpd.z * dt;
+  }
+
+  // Golden coin fountain
+  for (const c of coinParticles) {
+    if (c.life <= 0) continue;
+    c.life -= dt;
+    if (c.life <= 0) { c.mesh.visible = false; continue; }
+    c.vel.y -= 16.5 * dt;
+    c.mesh.position.addScaledVector(c.vel, dt);
+    if (c.mesh.position.y < c.floorY) {
+      c.mesh.position.y = c.floorY;
+      c.vel.y *= -0.48;
+      c.vel.x *= 0.8;
+      c.vel.z *= 0.8;
+    }
+    c.mesh.lookAt(camera.position);
+    c.mesh.rotation.z += c.spin * dt;
+  }
+
+  // Wet ripples
+  for (const r of ripples) {
+    if (r.life <= 0) continue;
+    r.life += dt;
+    const u = r.life / r.maxLife;
+    if (u >= 1) { r.mesh.visible = false; r.life = 0; continue; }
+    r.mesh.scale.setScalar(0.35 + u * r.maxScale);
+    r.mesh.material.opacity = (1 - u) * 0.55;
+  }
+
+  // Floating 3D-projected Euro & status popups
+  for (let i = activePopups.length - 1; i >= 0; i--) {
+    const pop = activePopups[i];
+    pop.age += dt;
+    if (pop.age >= pop.dur) {
+      pop.el.remove();
+      activePopups.splice(i, 1);
+      continue;
+    }
+    pop.pos.y += pop.vy * dt;
+    pop.vy *= Math.exp(-2.2 * dt);
+    const sc = projectToScreen(pop.pos);
+    if (!sc) {
+      pop.el.style.opacity = '0';
+    } else {
+      const fade = 1 - Math.pow(pop.age / pop.dur, 2.2);
+      pop.el.style.left = `${sc.x.toFixed(1)}px`;
+      pop.el.style.top = `${sc.y.toFixed(1)}px`;
+      pop.el.style.opacity = fade.toFixed(3);
+    }
+  }
+}
+
+const _spineWorldPos = new THREE.Vector3();
+const _spineWorldQuat = new THREE.Quaternion();
+const _camTarget = new THREE.Vector3();
+const _lockWorldPos = new THREE.Vector3();
+
+function syncHeroAndCamera(dt, snap = false) {
+  const yaw = curveYaw(S.z);
+  const groundElev = S.laneX > CURB_X + 0.08 ? 0.065 : (S.laneX < CANAL_EDGE_X ? -0.78 : 0.0);
+  if (S.grounded && S.phase !== 'over') S.y = groundElev;
+
+  const wp = laneToWorld(S.z, S.laneX, S.y);
+  S.worldPos.copy(wp);
+  heroRoot.position.copy(wp);
+
+  if (S.pickingBin) {
+    // Crouched slightly and turned right toward the bin's padlock with rapid lockpick hand-jiggle!
+    heroRoot.position.y += -0.05 + Math.abs(Math.sin(S.t * 26)) * 0.016;
+    heroRoot.rotation.y = THREE.MathUtils.damp(heroRoot.rotation.y, yaw - 0.74, 14, dt);
+    heroRoot.rotation.z = Math.sin(S.t * 28) * 0.025;
+  } else {
+    heroRoot.rotation.y = yaw - S.velLane * 0.032;
+    heroRoot.rotation.z = -S.velLane * 0.022;
+  }
+
+  if (heroMixer) heroMixer.update(snap ? 0.016 : dt);
+  heroRoot.updateMatrixWorld(true);
+
+  // Sync dynamic bulging bright-blue shopper bag to hero's Spine01 bone!
+  const targetBagScale = 1.0 + Math.min(0.76, S.heldCans * 0.034);
+  S.bagScale = snap ? targetBagScale : THREE.MathUtils.damp(S.bagScale, targetBagScale, 8, dt);
+  S.bagWobbleVel -= S.bagWobble * 58 * dt;
+  S.bagWobbleVel *= Math.exp(-6.5 * dt);
+  S.bagWobble += S.bagWobbleVel * dt;
+
+  const strideBob = S.pickingBin ? 0 : Math.sin(S.t * 12.5) * 0.035;
+  const heroHeading = heroRoot.rotation.y;
+  if (heroSpineBone) {
+    heroSpineBone.getWorldPosition(_spineWorldPos);
+    heroSpineBone.getWorldQuaternion(_spineWorldQuat);
+    const backDir = new THREE.Vector3(Math.sin(heroHeading), 0, Math.cos(heroHeading));
+    const rightDir = new THREE.Vector3(Math.cos(heroHeading), 0, -Math.sin(heroHeading));
+    bagSocket.position.copy(_spineWorldPos)
+      .addScaledVector(backDir, 0.19 + (S.bagScale - 1.0) * 0.11)
+      .addScaledVector(rightDir, 0.07);
+    bagSocket.position.y -= 0.03;
+    bagSocket.rotation.set(
+      0.10 + strideBob + S.bagWobble * 0.06,
+      heroHeading + S.velLane * 0.025 + S.bagWobble * 0.05,
+      -0.06 - S.velLane * 0.035 + Math.cos(S.t * 12.5) * (S.pickingBin ? 0.01 : 0.04) * S.bagScale
+    );
+    const bs = 0.56 * S.bagScale;
+    bagSocket.scale.set(bs * (1 + S.bagWobble * 0.04), bs * (1 - S.bagWobble * 0.03), bs * (1 + S.bagWobble * 0.04));
+  }
+
+  // Hide legacy speed-boost ribbons & charge ring cleanly
+  turboRibbonGroup.visible = false;
+  chargeRing.visible = false;
+
+  const buzzAlpha = (S.phase === 'over' || S.pickingBin) ? 0 : THREE.MathUtils.smoothstep(S.buzz, 0.12, 0.85) * 0.34;
+  buzzAuraMat.opacity = buzzAlpha;
+  buzzAuraGroup.visible = buzzAlpha > 0.01;
+  buzzAuraGroup.position.copy(wp);
+  buzzAuraGroup.rotation.y = yaw;
+
+  // Sync HUD Buzz pill bar
+  const buzzPct = Math.max(0, Math.min(100, S.buzz * 100));
+  buzzFillEl.style.width = `${buzzPct.toFixed(1)}%`;
+  buzzTrackEl.classList.toggle('low', S.buzz < 0.26 && S.phase === 'play');
+
+  // Anchor diegetic SVG radial lockpick ring right onto the 3D padlock!
+  if (S.pickingBin && S.pickingBin.mesh.userData.lockMesh && S.phase === 'play') {
+    S.pickingBin.mesh.userData.lockMesh.getWorldPosition(_lockWorldPos);
+    const sc = projectToScreen(_lockWorldPos);
+    if (sc) {
+      lockpickHudEl.classList.add('active');
+      lockpickHudEl.style.left = `${sc.x.toFixed(1)}px`;
+      lockpickHudEl.style.top = `${(sc.y - 10).toFixed(1)}px`;
+      const circ = 150.8;
+      const prog = THREE.MathUtils.clamp(S.pickProgress, 0, 1);
+      lockpickArcEl.style.strokeDashoffset = (circ * (1 - prog)).toFixed(2);
+      lockpickArcEl.setAttribute('stroke', prog > 0.78 ? '#7be7fc' : '#ffdf38');
+      lockpickLabelEl.textContent = 'HOLD SPACE \u00B7 RELEASE BAILS';
+    }
+  } else {
+    lockpickHudEl.classList.remove('active');
+  }
+
+  // Anchor chasing Warden "!" alert badges above their caps
+  for (const o of activeObstacles) {
+    if (o.bangEl) {
+      if (!o.chasing || S.phase !== 'play') {
+        o.bangEl.style.opacity = '0';
+      } else {
+        _lockWorldPos.copy(o.mesh.position).add(new THREE.Vector3(0, 2.02, 0));
+        const sc = projectToScreen(_lockWorldPos);
+        if (sc) {
+          o.bangEl.style.left = `${sc.x.toFixed(1)}px`;
+          o.bangEl.style.top = `${sc.y.toFixed(1)}px`;
+          o.bangEl.style.opacity = '1';
+        } else {
+          o.bangEl.style.opacity = '0';
+        }
+      }
+    }
+  }
+
+  // Move directional shadow frustum & sky dome with runner
+  moonDir.position.set(wp.x + 11, 26, wp.z + 12);
+  moonDir.target.position.set(wp.x - 2, 0, wp.z - 10);
+  heroRimLight.position.set(wp.x, wp.y + 1.4, wp.z + 1.2);
+  heroRimLight.intensity = 0.25 + S.buzz * 0.35 + S.cashFlash * 0.9;
+  skyDome.position.set(wp.x, -8, wp.z - 25);
+
+  // Assign pooled warm PointLights to 5 closest streetlamps + cyan light to closest Corner Market
+  activeLamps.sort((a, b) => a.pos.distanceToSquared(wp) - b.pos.distanceToSquared(wp));
+  let wi = 0;
+  marketLight.intensity = 0;
+  for (const lm of activeLamps) {
+    if (lm.isCyan) {
+      if (marketLight.intensity === 0) {
+        marketLight.position.copy(lm.pos).add(new THREE.Vector3(-0.8, 0.4, 0));
+        marketLight.intensity = 3.8 + S.cashFlash * 3.0;
+      }
+    } else if (wi < warmLights.length) {
+      warmLights[wi].position.copy(lm.pos);
+      warmLights[wi].intensity = 6.5;
+      wi++;
+    }
+  }
+  for (; wi < warmLights.length; wi++) warmLights[wi].intensity = 0;
+
+  // Steady Low Chase Camera (fixed readable FOV 50 — zero disorienting speed-boost zoom!)
+  camera.fov = 50;
+  camera.updateProjectionMatrix();
+
+  if (S.phase === 'over') {
+    const camOver = laneToWorld(S.z + 3.65 + Math.sin(S.t * 0.45) * 0.45, Math.min(0.05, S.laneX - 1.15), 1.72);
+    camera.position.lerp(camOver, 1 - Math.exp(-3.5 * dt));
+    camera.lookAt(wp.x, Math.max(0.4, wp.y + 0.92), wp.z - 0.8);
+  } else {
+    const camDist = S.pickingBin ? 2.55 : 2.88;
+    const camDesired = laneToWorld(S.z + camDist, S.laneX * 0.78 - 0.16, Math.max(0.2, groundElev) + 1.34);
+    if (snap) {
+      camera.position.copy(camDesired);
+    } else {
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, camDesired.x, 8.5, dt);
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, camDesired.y, 6.0, dt);
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, camDesired.z, 18.0, dt);
+    }
+    if (S.camShake > 0.001) {
+      S.camShake = Math.max(0, S.camShake - dt * 1.9);
+      camera.position.x += (Math.random() - 0.5) * S.camShake * 0.20;
+      camera.position.y += (Math.random() - 0.5) * S.camShake * 0.16;
+    }
+    const lookPt = laneToWorld(S.z - 6.2, S.laneX * 0.68 - 0.14, Math.max(0, groundElev) + 1.16);
+    _camTarget.copy(lookPt);
+    camera.lookAt(_camTarget);
+    camera.rotation.z += THREE.MathUtils.clamp(-S.velLane * 0.0085, -0.042, 0.042);
+  }
+
+  // Post-processing dynamic uniforms (crisp cyan/gold bloom pop on cash-in, zero radial speed blur!)
+  if (S.cashFlash > 0) S.cashFlash = Math.max(0, S.cashFlash - dt * 1.4);
+  bloomPass.strength = 0.36 + S.cashFlash * 0.30;
+  gradePass.uniforms.uTurbo.value = 0.0;
+  const lowBuzz = S.phase === 'over' ? 0.45 : THREE.MathUtils.clamp((0.35 - S.buzz) / 0.35, 0, 1);
+  gradePass.uniforms.uLowBuzz.value = THREE.MathUtils.damp(gradePass.uniforms.uLowBuzz.value, lowBuzz, 5, dt);
+}
+
+// ---------------------------------------------------------------------------
+// Bootstrap All GLB Models & Start Main Loop
+// ---------------------------------------------------------------------------
+async function initAssets() {
+  // Kick off audio decode in parallel
+  AudioSys.loadAll();
+
+  const [
+    heroRunG, heroJumpG, heroBashG, heroHeavyG, heroHitG, heroIdleG,
+    bagG, binBodyG, binDoorG, linerG, canG, padlockG,
+    bikeG, cyclistG, cargoG, wardenWalkG, wardenRunG, houseAG, houseBG, marketG, lampG, bollardG
+  ] = await Promise.all([
+    gltfLoader.loadAsync('assets/hero_rig_8.glb'),
+    gltfLoader.loadAsync('assets/hero_rig_12.glb'),
+    gltfLoader.loadAsync('assets/hero_rig_14.glb'),
+    gltfLoader.loadAsync('assets/hero_rig_16.glb'),
+    gltfLoader.loadAsync('assets/hero_rig_18.glb'),
+    gltfLoader.loadAsync('assets/hero_rig_20.glb'),
+    gltfLoader.loadAsync('assets/blue_bag_0.glb'),
+    gltfLoader.loadAsync('assets/amsterdam_bin_body_0.glb'),
+    gltfLoader.loadAsync('assets/amsterdam_bin_door_0.glb'),
+    gltfLoader.loadAsync('assets/spilled_blue_liner_0.glb'),
+    gltfLoader.loadAsync('assets/statiegeld_can_0.glb'),
+    gltfLoader.loadAsync('assets/padlock_0.glb'),
+    gltfLoader.loadAsync('assets/dutch_bike_0.glb'),
+    gltfLoader.loadAsync('assets/dutch_cyclist_0.glb'),
+    gltfLoader.loadAsync('assets/cargo_bike_0.glb'),
+    gltfLoader.loadAsync('assets/warden_rig_8.glb'),
+    gltfLoader.loadAsync('assets/warden_rig_7.glb'),
+    gltfLoader.loadAsync('assets/townhouse_a_0.glb'),
+    gltfLoader.loadAsync('assets/townhouse_b_0.glb'),
+    gltfLoader.loadAsync('assets/return_market_0.glb'),
+    gltfLoader.loadAsync('assets/streetlamp_0.glb'),
+    gltfLoader.loadAsync('assets/bollard_0.glb'),
+  ]);
+
+  // 1. Hero (1.78m, rotated Math.PI so he faces -Z away from camera)
+  const hm = heroRunG.scene;
+  hm.rotation.y = Math.PI;
+  celify(hm, { outline: 0.014 });
+  heroRoot.add(hm);
+  hm.traverse((o) => { if (o.isBone && o.name === 'Spine01') heroSpineBone = o; });
+
+  heroMixer = new THREE.AnimationMixer(hm);
+  heroActions.run = heroMixer.clipAction(heroRunG.animations[0]);
+  heroActions.jump = heroMixer.clipAction(heroJumpG.animations[0]);
+  heroActions.bash = heroMixer.clipAction(heroBashG.animations[0]);
+  heroActions.heavyBash = heroMixer.clipAction(heroHeavyG.animations[0]);
+  heroActions.hit = heroMixer.clipAction(heroHitG.animations[0]);
+  heroActions.idle = heroMixer.clipAction(heroIdleG.animations[0]);
+  heroActions.run.timeScale = 0.98;
+
+  // 2. Hero's Bright-Blue Shopper Bag (centered on bagSocket, broad strap face toward camera)
+  const bagClone = bagG.scene;
+  bagClone.updateMatrixWorld(true);
+  const bBox = new THREE.Box3().setFromObject(bagClone);
+  const bCtr = bBox.getCenter(new THREE.Vector3());
+  bagClone.position.set(-bCtr.x, -bCtr.y, -bCtr.z);
+  const bagInner = new THREE.Group();
+  bagInner.add(bagClone);
+  bagInner.rotation.y = Math.PI * 0.5;
+  celify(bagInner, { outline: 0.018 });
+  bagSocket.add(bagInner);
+
+  // 3. Authentic Amsterdam Bammens Bin Body + Left-Hinged XXX Door + Spilled Blue Liner + €0.15/€0.25 Cans & Brass Padlock
+  Templates.binBody = normalizeStaticGLB(binBodyG.scene, 1.15, Math.PI * 0.25, 0.014);
+  {
+    const dClone = binDoorG.scene.clone(true);
+    dClone.updateMatrixWorld(true);
+    const db = new THREE.Box3().setFromObject(dClone);
+    const dc = db.getCenter(new THREE.Vector3());
+    const ds = db.getSize(new THREE.Vector3());
+    const dScale = (1.15 * 0.74) / ds.y;
+    const dWrap = new THREE.Group();
+    dClone.position.set(-db.min.x, -db.min.y, -dc.z);
+    dWrap.scale.setScalar(dScale);
+    dWrap.add(dClone);
+    celify(dWrap, { outline: 0.013 });
+    Templates.binDoor = dWrap;
+  }
+  Templates.liner = normalizeStaticGLB(linerG.scene, 0.34, 0.2, 0.012);
+  Templates.can = normalizeStaticGLB(canG.scene, 0.24, 0, 0.012);
+  Templates.bigCan = normalizeStaticGLB(canG.scene, 0.31, 0, 0.014, { tint: 0xffdf55 });
+  Templates.padlock = normalizeStaticGLB(padlockG.scene, 0.30, 0, 0.014, { tint: 0xffdc48 });
+
+  // 4. Bikes & Cargo-Bikes (native front wheel is +X -> rotate -Math.PI/2 so oncoming bikes face +Z!)
+  Templates.bike = normalizeStaticGLB(bikeG.scene, 1.06, -Math.PI * 0.5, 0.012);
+  Templates.cyclist = normalizeStaticGLB(cyclistG.scene, 1.74, -Math.PI * 0.5, 0.014);
+  Templates.cargo = normalizeStaticGLB(cargoG.scene, 1.72, -Math.PI * 0.5, 0.014);
+
+  // 5. Yellow-Vested Street Warden (Casual_Walk patrol + running pursuit clip!)
+  Templates.wardenGltf = wardenWalkG;
+  Templates.wardenWalkClip = wardenWalkG.animations[0];
+  Templates.wardenRunClip = wardenRunG.animations[0];
+
+  // 6. Crooked Amsterdam Canal Townhouses & Glowing Sky-Blue Corner Market Return Machine
+  Templates.houseA = normalizeStaticGLB(houseAG.scene, 13.8, 0, 0.024, { castShadow: false, tint: 0x7c5c4e, emissiveWarmWindows: true });
+  Templates.houseB = normalizeStaticGLB(houseBG.scene, 14.2, 0, 0.024, { castShadow: false, tint: 0x745040, emissiveWarmWindows: true });
+  Templates.market = normalizeStaticGLB(marketG.scene, 13.8, 0, 0.024, { castShadow: false, tint: 0xa6bdcb, emissiveCyan: true });
+  Templates.lamp = normalizeStaticGLB(lampG.scene, 4.35, 0, 0.013, { emissiveWarmWindows: true });
+  Templates.bollard = normalizeStaticGLB(bollardG.scene, 0.82, 0, 0.012);
+
+  // Allocate pooled corridor segments
+  for (let i = 0; i < SEG_COUNT; i++) {
+    const grp = new THREE.Group();
+    scene.add(grp);
+    segments.push({ segIdx: i, z0: 0, z1: 0, hasRailing: false, group: grp, ribbons: [] });
+  }
+
+  resetRun(START_X);
+  S.ready = true;
+}
+initAssets();
+
+// ---------------------------------------------------------------------------
+// Main Gameplay Loop (60 fps Fixed-Safe Delta)
+// ---------------------------------------------------------------------------
+const clock = new THREE.Clock();
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), 1 / 20);
+  const inp = readInput();
+  spaceJustPressed = false;
+  spaceJustReleased = false;
+  restartJustPressed = false;
+  enterJustPressed = false;
+  tabJustPressed = false;
+  digitJustPressed = -1;
+
+  // Scroll canal water ripples & rain continuously even on title/shop screen
+  texWater.offset.y -= dt * 0.06;
+  texWater.offset.x += dt * 0.025;
+  texWater2.offset.y += dt * 0.04;
+  texWater2.offset.x -= dt * 0.03;
+
+  if (S.ready) {
+    if (S.phase === 'title') {
+      if (inp.tab) {
+        AudioSys.unlock();
+        openShop(!S.shopOpen);
+      } else if (S.shopOpen) {
+        if (inp.digit >= 0) buyUpgrade(inp.digit);
+        if (inp.start || inp.restart) startOrRestartFromUI();
+      } else if (inp.start || inp.bashDown || inp.hop || Math.abs(inp.steer) > 0.3) {
+        startOrRestartFromUI();
+      }
+    } else if (S.phase === 'over') {
+      S.t += dt;
+      if (S.overDelay > 0) {
+        S.overDelay = Math.max(0, S.overDelay - dt);
+        if (S.overDelay <= 0 && !S.shopOpen) openShop(true);
+      }
+      if (S.shopOpen && inp.digit >= 0) buyUpgrade(inp.digit);
+      if (inp.restart || inp.start) {
+        startOrRestartFromUI();
+      }
+    }
+
+    if (S.phase === 'play' && !FREEZE) {
+      S.t += dt;
+      if (S.fullHintCooldown > 0) S.fullHintCooldown = Math.max(0, S.fullHintCooldown - dt);
+      if (S.depositTimer > 0) S.depositTimer = Math.max(0, S.depositTimer - dt);
+
+      if (AudioSys.musicNode && AudioSys.musicGain) {
+        AudioSys.musicNode.playbackRate.value = 1.0;
+        AudioSys.musicGain.gain.value = S.pickingBin ? 0.16 : 0.21;
+      }
+
+      // 1. Stop-and-Pick Padlock Channel vs. Constant Street Sprint (11.0 m/s)
+      if (S.pickingBin) {
+        if (!inp.bashHeld || S.pickingBin.bashed) {
+          // Released Space early -> instant bail back into sprint!
+          if (S.pickHoldTime < 0.15 && !S.pickingBin.bashed) {
+            AudioSys.play('bash', 0.34, 1.48);
+            S.camShake = 0.12;
+          }
+          if (!S.pickingBin.bashed) {
+            S.pickingBin.savedPick = Math.max(0, S.pickProgress - 0.08);
+          }
+          stopLockpick();
+          fadeToAction('run', 0.10);
+          S.speed = CRUISE_SPEED * 0.76;
+        } else {
+          S.pickHoldTime += dt;
+          S.speed = 0;
+          S.velLane = 0;
+          const snapZ = S.pickingBin.z + 0.38;
+          const snapLane = THREE.MathUtils.clamp(S.pickingBin.laneX - 0.56, CURB_X + 0.28, WALL_X - 0.18);
+          S.z = THREE.MathUtils.damp(S.z, snapZ, 16, dt);
+          S.laneX = THREE.MathUtils.damp(S.laneX, snapLane, 16, dt);
+
+          const lk = S.pickingBin.mesh.userData.lockMesh;
+          if (lk) {
+            lk.rotation.z = Math.sin(S.t * 44) * 0.24;
+            lk.rotation.x = Math.cos(S.t * 35) * 0.12;
+          }
+          AudioSys.startLoop('lockpick', 'lockpick', 0.48, 0.96 + S.pickProgress * 0.26);
+          alertNearbyWardens(S.pickingBin.z, WARDEN_AGRO_DIST);
+
+          S.pickProgress += dt / getPickDuration();
+          if (S.pickProgress >= 1.0) {
+            const unlockedBin = S.pickingBin;
+            stopLockpick();
+            executeBinBash(unlockedBin, true);
+            S.speed = CRUISE_SPEED * 0.84;
+          }
+        }
+      } else {
+        // Constant 11.0 m/s cruise speed (or brief 0.5s glide slowdown alongside Corner Market slot)
+        const wantSpeed = S.depositTimer > 0 ? DEPOSIT_SPEED : CRUISE_SPEED;
+        S.speed = THREE.MathUtils.damp(S.speed, wantSpeed, S.depositTimer > 0 ? 11.5 : 8.5, dt);
+        S.z -= S.speed * dt;
+
+        // Recycle corridor segments 26m behind runner so pursuing Wardens stay active
+        while (segments.length > 0 && S.z < segments[0].z1 - 26) {
+          const recycled = segments.shift();
+          pruneSegmentEntities(recycled.segIdx);
+          populateSegment(recycled, S.nextSegIdx++);
+          segments.push(recycled);
+        }
+
+        // Lateral Weave (upgraded by Grippy Sneakers & Bigger Bag)
+        const weightFactor = 1.0 / (1.0 + S.heldCans * getBagDragPerCan());
+        const steerTarget = inp.steer * 7.6 * getSteerMult();
+        S.velLane = THREE.MathUtils.damp(S.velLane, steerTarget, getSteerDamp() * weightFactor, dt);
+        S.laneX += S.velLane * dt;
+
+        // Right townhouse wall clamp & fenced quay railing bump vs unfenced canal plunge!
+        if (S.laneX > WALL_X) {
+          S.laneX = WALL_X;
+          if (S.velLane > 0) S.velLane = 0;
+        }
+        const hasRail = currentSegmentHasRailing(S.z);
+        if (hasRail && S.laneX < CANAL_EDGE_X + 0.34) {
+          S.laneX = CANAL_EDGE_X + 0.34;
+          if (S.velLane < 0) S.velLane *= -0.35;
+        } else if (!hasRail && S.laneX < CANAL_EDGE_X - 0.14 && S.y <= 0.18) {
+          S.y = -0.68;
+          const sp = laneToWorld(S.z, S.laneX - 0.3, -0.75);
+          spawnRipple(sp.x, -0.75, sp.z, 7.5, 0xd8ecff);
+          spawnRipple(sp.x + 0.3, -0.75, sp.z - 0.3, 5.2, 0x99c8eb);
+          AudioSys.play('splash', 0.72, 1.0);
+          triggerGameOver('canal');
+        }
+
+        // Hop (W / Up) over bollards & low stoep obstacles
+        const groundElev = S.laneX > CURB_X + 0.08 ? 0.065 : 0.0;
+        if (inp.hop && S.grounded && S.phase === 'play') {
+          S.velY = getHopVel();
+          S.grounded = false;
+          AudioSys.play('hop', 0.45, 1.0);
+          fadeToAction('jump', 0.08, true);
+          S.actionTimer = 0.52;
+        }
+        if (!S.grounded) {
+          S.velY -= 23.5 * dt;
+          S.y += S.velY * dt;
+          if (S.y <= groundElev && S.phase === 'play') {
+            S.y = groundElev;
+            S.velY = 0;
+            S.grounded = true;
+            spawnRipple(S.worldPos.x, groundElev, S.worldPos.z, 2.2);
+          }
+        } else {
+          S.y = THREE.MathUtils.damp(S.y, groundElev, 18, dt);
+          S.stepTimer -= dt * (S.speed / CRUISE_SPEED);
+          if (S.stepTimer <= 0 && S.speed > 2.0) {
+            S.stepTimer = 0.31;
+            spawnRipple(S.worldPos.x + (Math.random() - 0.5) * 0.25, groundElev, S.worldPos.z, 1.65);
+            AudioSys.play('step', 0.15, 0.92 + Math.random() * 0.16);
+          }
+        }
+
+        // Bin Interactions: Hold Space near locked bin -> Stop & Pick | Tap Space near unlocked bin -> Bash in stride
+        if (inp.bashDown) S.bashBuffer = 0.22;
+        if (S.bashBuffer > 0) S.bashBuffer = Math.max(0, S.bashBuffer - dt);
+
+        if (inp.bashHeld && S.grounded && S.depositTimer <= 0 && S.phase === 'play') {
+          for (const b of activeBins) {
+            if (b.bashed || !b.locked) continue;
+            const relZ = S.z - b.z;
+            const dx = Math.abs(S.laneX - b.laneX);
+            if (relZ > -0.85 && relZ < 2.55 && dx < 1.62) {
+              S.pickingBin = b;
+              S.pickProgress = b.savedPick || 0;
+              S.pickHoldTime = 0;
+              S.bashBuffer = 0;
+              S.actionTimer = 0;
+              fadeToAction('idle', 0.10);
+              alertNearbyWardens(b.z, WARDEN_AGRO_DIST);
+              break;
+            }
+          }
+        }
+
+        if (!S.pickingBin && S.bashBuffer > 0 && S.phase === 'play') {
+          for (const b of activeBins) {
+            if (b.bashed || b.locked) continue;
+            const dz = Math.abs(S.z - b.z);
+            const dx = Math.abs(S.laneX - b.laneX);
+            if (dz < 2.35 && dx < 1.55) {
+              executeBinBash(b, false);
+              S.bashBuffer = 0;
+              break;
+            }
+          }
+        }
+      }
+
+      // 2. Check Glowing Sky-Blue Corner Market Return-Slot Cash-In!
+      if (S.phase === 'play') {
+        for (const m of activeMarkets) {
+          if (m.used) continue;
+          const dz = Math.abs(S.z - m.z);
+          if (dz < 2.95 && S.laneX > -0.05) {
+            if (S.pickingBin) stopLockpick();
+            executeMarketCashIn(m);
+          }
+        }
+      }
+
+      // 3. Update Moving Cyclists, Cargo-Bikes & Patrolling/Pursuing Wardens + Check Collisions
+      for (const o of activeObstacles) {
+        if (o.speedZ > 0) {
+          o.z += o.speedZ * dt; // Rides toward +Z in road lane
+          const wp = laneToWorld(o.z, o.laneX, 0.0);
+          o.mesh.position.copy(wp);
+          o.mesh.rotation.y = curveYaw(o.z);
+          const ahead = S.z - o.z;
+          if (!o.bellRung && ahead > 0 && ahead < 22) {
+            o.bellRung = true;
+            AudioSys.play('bell', 0.36, o.type === 'cargo' ? 0.88 : 1.04);
+          }
+        } else if (o.type === 'warden') {
+          if (o.mixer) o.mixer.update(dt);
+          if (o.chasing && S.phase === 'play') {
+            const dzToHero = S.z - o.z;
+            const dxToHero = S.laneX - o.laneX;
+            const dist2D = Math.hypot(dzToHero, dxToHero);
+            const prevWp = o.mesh.position.clone();
+            if (dist2D > 0.04) {
+              const step = Math.min(dist2D, WARDEN_CHASE_SPEED * dt);
+              o.z += (dzToHero / dist2D) * step;
+              o.laneX += (dxToHero / dist2D) * step;
+            }
+            const wy = o.laneX > CURB_X + 0.08 ? 0.065 : 0.0;
+            const wp = laneToWorld(o.z, o.laneX, wy);
+            o.mesh.position.copy(wp);
+            const wx = wp.x - prevWp.x, wz = wp.z - prevWp.z;
+            if (wx * wx + wz * wz > 1e-6) {
+              o.mesh.rotation.y = Math.atan2(wx, wz);
+            }
+          } else {
+            const prevLane = o.laneX;
+            o.laneX = o.baseLane + Math.sin(S.t * 1.85 + o.patrolPhase) * 0.88;
+            const wp = laneToWorld(o.z, o.laneX, 0.065);
+            o.mesh.position.copy(wp);
+            const dirX = o.laneX - prevLane;
+            o.mesh.rotation.y = curveYaw(o.z) + (dirX >= 0 ? Math.PI * 0.5 : -Math.PI * 0.5);
+            const ahead = S.z - o.z;
+            if (!o.whistled && ahead > 0 && ahead < 14 && Math.abs(S.laneX - o.laneX) < 1.7) {
+              o.whistled = true;
+              AudioSys.play('whistle', 0.28, 1.0);
+            }
+          }
+        }
+
+        if (!o.hit && S.phase === 'play') {
+          const dz = Math.abs(S.z - o.z);
+          const dx = Math.abs(S.laneX - o.laneX);
+          if (dz < 0.80 && dx < o.radius + 0.25) {
+            if (o.hoppable && S.y > 0.50) continue; // Cleanly hopped over bollard!
+            o.hit = true;
+            if (o.type === 'warden') {
+              // Caught by a BOA Street Warden -> Instant Bust!
+              S.camShake = 0.45;
+              AudioSys.play('busted', 0.74, 1.0);
+              fadeToAction('hit', 0.05, true);
+              spawnWorldPopup(S.worldPos.clone().add(new THREE.Vector3(0, 2.0, 0)), 'BUSTED!', '#ff4d5a', 'CAUGHT BY BOA', 1.25);
+              triggerGameOver('busted');
+              break;
+            } else {
+              // Bike or bollard collision: cushions Buzz & spills fewer cans with upgrades
+              S.camShake = 0.34;
+              S.buzz = Math.max(0, S.buzz - getBikeBuzzLoss());
+              const lost = Math.min(S.heldQueue.length, getBikeSpillCount());
+              if (lost > 0) {
+                S.heldQueue.splice(-lost, lost);
+                S.heldCans = S.heldQueue.length;
+                syncHudCounters(true, false);
+                burstLitter(S.worldPos, 10);
+              }
+              S.velLane += (S.laneX < o.laneX ? -5.0 : 5.0);
+              fadeToAction('hit', 0.05, true);
+              S.actionTimer = 0.40;
+              AudioSys.play('bash', 0.50, 0.78);
+              if (S.buzz <= 0) {
+                fadeToAction('idle', 0.25);
+                triggerGameOver('buzz');
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // 4. Return to sprint animation after one-shot hop/bash/stumble finishes
+      if (!S.pickingBin && S.phase === 'play') {
+        if (S.actionTimer > 0) {
+          S.actionTimer -= dt;
+          if (S.actionTimer <= 0 && S.grounded) fadeToAction('run', 0.14);
+        }
+        if (heroActions.run) {
+          heroActions.run.timeScale = Math.max(0.45, 0.98 * (S.speed / CRUISE_SPEED));
+        }
+      }
+
+      // 5. Continuous Cold-Rain Buzz Drain (slowed by Warm Hoodie & Thermos)
+      if (S.phase === 'play') {
+        const baseDrain = 0.044 + Math.min(0.024, (S.wave - 1) * 0.004);
+        S.buzz = Math.max(0, S.buzz - baseDrain * getBuzzDrainMult() * dt);
+        if (S.buzz <= 0) {
+          fadeToAction('idle', 0.25);
+          triggerGameOver('buzz');
+        }
+      }
+    } else if (S.phase === 'title') {
+      S.t += dt;
+    }
+
+    const simDt = FREEZE ? 0 : dt;
+    updateParticlesAndProps(simDt);
+    syncHeroAndCamera(simDt, false);
+  }
+
+  // Update falling slanted night rain around camera (1 InstancedMesh draw call)
+  const cx = camera.position.x, cz = camera.position.z;
+  for (let i = 0; i < RAIN_N; i++) {
+    const r = rainDrops[i];
+    r.oy -= r.spd * dt;
+    r.ox -= 1.8 * dt;
+    if (r.oy < -0.5) {
+      r.oy += 14.5;
+      r.ox = ((Math.random() - 0.5) * 26);
+      r.oz = -Math.random() * 36 + 4;
+      if (i % 18 === 0) spawnRipple(cx + r.ox * 0.5, 0.02, cz + r.oz * 0.5, 1.15);
+    }
+    _dummy.position.set(cx + r.ox, r.oy, cz + r.oz);
+    _dummy.rotation.set(0, 0, -0.11);
+    _dummy.updateMatrix();
+    rainMesh.setMatrixAt(i, _dummy.matrix);
+  }
+  rainMesh.instanceMatrix.needsUpdate = true;
+
+  gradePass.uniforms.uTime.value += dt;
+  composer.render();
+  requestAnimationFrame(frame);
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  bloomPass.setSize(innerWidth, innerHeight);
+  gradePass.uniforms.uRes.value.set(innerWidth, innerHeight);
+});
+
+frame();
+</script>
+</body>
+</html>

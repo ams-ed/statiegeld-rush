@@ -1,0 +1,65 @@
+# OS & local tooling
+.DS_Store
+node_modules/
+
+# Secrets & API keys (never commit)
+.env
+.env.*
+*.key
+*.pem
+*fal_key*
+
+# Raw uncut local Playwright recording (176 MB)
+/playtest_take.mp4
+
+# Ignore intermediate/duplicate fal generation outputs in assets/,
+# keeping only fal_log.json and the active runtime game assets:
+/assets/*
+!/assets/fal_log.json
+!/assets/amsterdam_bin_body_0.glb
+!/assets/amsterdam_bin_door_0.glb
+!/assets/blue_bag_0.glb
+!/assets/bollard_0.glb
+!/assets/canal_tree_cutout.webp
+!/assets/cargo_bike_0.glb
+!/assets/dutch_bike_0.glb
+!/assets/dutch_cyclist_0.glb
+!/assets/hero_rig_8.glb
+!/assets/hero_rig_12.glb
+!/assets/hero_rig_14.glb
+!/assets/hero_rig_16.glb
+!/assets/hero_rig_18.glb
+!/assets/hero_rig_20.glb
+!/assets/icon_can.png
+!/assets/music_chase.mp3
+!/assets/padlock_0.glb
+!/assets/return_market_0.glb
+!/assets/sfx_bike_bell.mp3
+!/assets/sfx_bin_bash.mp3
+!/assets/sfx_busted.mp3
+!/assets/sfx_can_pickup.mp3
+!/assets/sfx_canal_splash.mp3
+!/assets/sfx_cash_register.mp3
+!/assets/sfx_cashin_turbo.mp3
+!/assets/sfx_charge_hum.mp3
+!/assets/sfx_footstep.mp3
+!/assets/sfx_hop.mp3
+!/assets/sfx_lockpick.mp3
+!/assets/sfx_padlock_break.mp3
+!/assets/sfx_rain_ambience.mp3
+!/assets/sfx_upgrade_buy.mp3
+!/assets/sfx_warden_whistle.mp3
+!/assets/sky_amsterdam_night.webp
+!/assets/spilled_blue_liner_0.glb
+!/assets/sprite_coin_cutout.webp
+!/assets/sprite_litter_cutout.webp
+!/assets/statiegeld_can_0.glb
+!/assets/streetlamp_0.glb
+!/assets/tex_neon_streak.webp
+!/assets/tex_quay_stone.webp
+!/assets/tex_water_normal.webp
+!/assets/tex_wet_brick.webp
+!/assets/townhouse_a_0.glb
+!/assets/townhouse_b_0.glb
+!/assets/warden_rig_7.glb
+!/assets/warden_rig_8.glb

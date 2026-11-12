@@ -1,0 +1,1350 @@
+[
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "hero_concept",
+  "seconds": 30.3,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22b72/5z3Xl7G2zBGZEIWi0k-SU_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22b72/qBobUingiMumYb6heQpdn_f_037.jpg",
+    "https://v3b.fal.media/files/b/0ab22b72/th-q2j9opcidvYogwJmA9_f_039.jpg"
+   ]
+  },
+  "prompt": "The same wiry wide-eyed young male street runner character from the reference frames alone, full body front view, clean symmetrical A-pose with arms 35 degrees away from the body and legs straight slightly apart, wearing the oversized dark olive-charcoal hooded jacket with hood pulled up, skinny dark charcoal jeans, and dark sneakers with light rubber soles, WITHOUT the blue bag on his back, neutral determined expression, bold cel-shaded 3D arcade game character art with crisp dark ink outlines, even studio light, isolated on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/hero_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "hero_cutout",
+  "seconds": 2.6,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22b78/QDhkkKWa9-7jyPGfXyshC_hero_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/hero_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "hero_mesh",
+  "seconds": 106.7,
+  "arguments": {
+   "pose_mode": "a-pose",
+   "target_polycount": 25000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22b7c/IyP-gdkrxw3cIc_2CmfSv_hero_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/hero_mesh_0.glb",
+   "assets/hero_mesh_1.png",
+   "assets/hero_mesh_2.glb",
+   "assets/hero_mesh_3.fbx",
+   "assets/hero_mesh_4.obj",
+   "assets/hero_mesh_5.usdz",
+   "assets/hero_mesh_6.stl",
+   "assets/hero_mesh_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/meshy/rigging/multi-animation",
+  "name": "hero_rig",
+  "seconds": 554.3,
+  "arguments": {
+   "animation_action_ids": [
+    16,
+    14,
+    13,
+    195,
+    128,
+    178,
+    0
+   ],
+   "height_meters": 1.78,
+   "model_url": "https://v3b.fal.media/files/b/0ab22b89/KPBWYcYYrro3TCtDOYwy3_hero_mesh_0.glb"
+  },
+  "prompt": null,
+  "files": [
+   "assets/hero_rig_0.glb",
+   "assets/hero_rig_1.fbx",
+   "assets/hero_rig_2.glb",
+   "assets/hero_rig_3.fbx",
+   "assets/hero_rig_4.glb",
+   "assets/hero_rig_5.glb",
+   "assets/hero_rig_6.fbx",
+   "assets/hero_rig_7.glb",
+   "assets/hero_rig_8.glb",
+   "assets/hero_rig_9.fbx",
+   "assets/hero_rig_10.glb",
+   "assets/hero_rig_11.fbx",
+   "assets/hero_rig_12.glb",
+   "assets/hero_rig_13.fbx",
+   "assets/hero_rig_14.glb",
+   "assets/hero_rig_15.fbx",
+   "assets/hero_rig_16.glb",
+   "assets/hero_rig_17.fbx",
+   "assets/hero_rig_18.glb",
+   "assets/hero_rig_19.fbx",
+   "assets/hero_rig_20.glb",
+   "assets/hero_rig_21.fbx"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "blue_bag_concept",
+  "seconds": 28.6,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22bc3/6Zrh3VD2osi58BvkgGhwB_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22bc3/13YLeuUVCIZ1DQEDdQDCc_f_033.jpg",
+    "https://v3b.fal.media/files/b/0ab22bc3/GpluwSxLBRmKALNAymzMD_f_037.jpg"
+   ]
+  },
+  "prompt": "The bright cobalt-blue rectangular reusable woven shopping bag (#0193d9) with two vertical dark royal-blue webbing straps (#162d9c) from the runner in the reference frames, bulging full with shiny silver aluminum drink cans peeking out of the open top, three-quarter front-back product view, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, even studio lighting, isolated alone on a flat plain light grey background, no person, no floor shadow, no text.",
+  "files": [
+   "assets/blue_bag_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "blue_bag_cutout",
+  "seconds": 3.0,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22bc8/_x4s02t91EwtoEuVQl7P5_blue_bag_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/blue_bag_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "tripo3d/h3.1/image-to-3d",
+  "name": "blue_bag",
+  "seconds": 171.3,
+  "arguments": {
+   "face_limit": 15000,
+   "pbr": true,
+   "image_url": "https://v3b.fal.media/files/b/0ab22bcb/g5YeeuEZwg4P9i1GYM9zx_blue_bag_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/blue_bag_0.glb",
+   "assets/blue_bag_1.glb",
+   "assets/blue_bag_2.glb",
+   "assets/blue_bag_3.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "amsterdam_bin_body_concept",
+  "seconds": 23.0,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22be1/QLPDLMfeUMt_sb7YDeyYB_f_011.jpg",
+    "https://v3b.fal.media/files/b/0ab22be1/sN_iIfm-oeOrX8Rn38pIr_media_1794484066181_8c8f2d52.jpg",
+    "https://v3b.fal.media/files/b/0ab22be1/ky-664-4FdDDnWTbX8O7U_media_1794484082281_38256d84.jpg"
+   ]
+  },
+  "prompt": "The matte olive-grey-taupe curved Amsterdam street trash bin housing from the reference photos rendered in the bold cel-shaded 3D arcade game art style with crisp dark ink outlines of the first frame: sloped hooded top with recessed throw-in slot under the overhang, small street stickers on the upper grey frame, and a dark recessed hollow front doorway cavity WITHOUT the front door attached and WITHOUT any trash bag inside, three-quarter front view, even studio light, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/amsterdam_bin_body_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "amsterdam_bin_body_cutout",
+  "seconds": 3.3,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22be6/BHylet2VVJZiYzu9iuZBT_amsterdam_bin_body_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/amsterdam_bin_body_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "amsterdam_bin_body",
+  "seconds": 193.1,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22bea/osD3p9ZPHe4md5zovuypZ_amsterdam_bin_body_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/amsterdam_bin_body_0.glb",
+   "assets/amsterdam_bin_body_1.png",
+   "assets/amsterdam_bin_body_2.glb",
+   "assets/amsterdam_bin_body_3.obj",
+   "assets/amsterdam_bin_body_4.mtl",
+   "assets/amsterdam_bin_body_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "amsterdam_bin_door_concept",
+  "seconds": 29.1,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c03/L44gcxH3IVLK2P8W9PFWE_amsterdam_bin_body_concept.png",
+    "https://v3b.fal.media/files/b/0ab22c03/6GAp7dVs9QRhVm4i7yTAi_media_1794484066181_8c8f2d52.jpg",
+    "https://v3b.fal.media/files/b/0ab22c03/MgHz0mUxsE563P2EBeQHx_media_1794484082281_38256d84.jpg"
+   ]
+  },
+  "prompt": "ONLY the detached curved vertical front service door panel of the matte olive-grey-taupe Amsterdam street trash bin from the reference photos, standing upright front-facing view, showing the recessed rectangular inner panel with the three vertical embossed Amsterdam XXX crosses down the center, matching the exact matte olive-taupe color and bold cel-shaded 3D arcade game art style with crisp dark ink outlines of the first image, isolated alone on a flat plain light grey background, no bin housing, no floor shadow, no text.",
+  "files": [
+   "assets/amsterdam_bin_door_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "amsterdam_bin_door_cutout",
+  "seconds": 2.5,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c09/7fUwlUjXTmgB3bwq9Zdb7_amsterdam_bin_door_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/amsterdam_bin_door_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "amsterdam_bin_door",
+  "seconds": 169.2,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22c0e/1A7mlXSYA0B5IRXfew0sT_amsterdam_bin_door_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/amsterdam_bin_door_0.glb",
+   "assets/amsterdam_bin_door_1.png",
+   "assets/amsterdam_bin_door_2.glb",
+   "assets/amsterdam_bin_door_3.obj",
+   "assets/amsterdam_bin_door_4.mtl",
+   "assets/amsterdam_bin_door_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "spilled_blue_liner_concept",
+  "seconds": 25.5,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c22/khznr2hy_z3ZGf8HV4jvc_f_011.jpg",
+    "https://v3b.fal.media/files/b/0ab22c22/OGlBvy3COsvVgDXxfhjEY_media_1794484082281_38256d84.jpg"
+   ]
+  },
+  "prompt": "ONLY the crumpled light-blue plastic trash bag bin liner spilled open onto the ground from the second reference photo, rendered in the bold cel-shaded 3D arcade game art style with crisp dark ink outlines of the first frame, showing wrinkled sky-blue plastic folds with a few crushed red/silver soda cans and colorful paper wrappers poking out of the open bag mouth, low three-quarter view, even studio light, isolated alone on a flat plain light grey background, no trash bin, no ground bricks, no floor shadow, no text.",
+  "files": [
+   "assets/spilled_blue_liner_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "spilled_blue_liner_cutout",
+  "seconds": 1.7,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c28/mR4r5EWB_7NIDzQCfHwpj_spilled_blue_liner_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/spilled_blue_liner_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "spilled_blue_liner",
+  "seconds": 125.6,
+  "arguments": {
+   "target_polycount": 12000,
+   "image_url": "https://v3b.fal.media/files/b/0ab22c2b/2RPQk-X_Xhzi-VI5vuj99_spilled_blue_liner_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/spilled_blue_liner_0.glb",
+   "assets/spilled_blue_liner_1.png",
+   "assets/spilled_blue_liner_2.glb",
+   "assets/spilled_blue_liner_3.fbx",
+   "assets/spilled_blue_liner_4.obj",
+   "assets/spilled_blue_liner_5.usdz",
+   "assets/spilled_blue_liner_6.stl",
+   "assets/spilled_blue_liner_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "statiegeld_can_concept",
+  "seconds": 31.4,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c3a/gMU88ioiy4GZkHcszZI5T_f_026.jpg"
+   ]
+  },
+  "prompt": "A single shiny metallic silver aluminum 330ml drink can from the reference frame with a clean decorative cobalt-blue geometric stripe band (no readable words or brand logos), standing upright at a slight three-quarter angle showing the pull-tab top rim, bold cel-shaded 3D arcade game prop with punchy dark ink outlines and bright comic specular highlights, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/statiegeld_can_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "statiegeld_can_cutout",
+  "seconds": 2.1,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c40/jNZdWz_-Fc50iNP8zHndM_statiegeld_can_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/statiegeld_can_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "statiegeld_can",
+  "seconds": 87.8,
+  "arguments": {
+   "target_polycount": 5000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c43/i6kkAdQFx80Z2vzGiN2AA_statiegeld_can_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/statiegeld_can_0.glb",
+   "assets/statiegeld_can_1.png",
+   "assets/statiegeld_can_2.glb",
+   "assets/statiegeld_can_3.fbx",
+   "assets/statiegeld_can_4.obj",
+   "assets/statiegeld_can_5.usdz",
+   "assets/statiegeld_can_6.stl",
+   "assets/statiegeld_can_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "padlock_concept",
+  "seconds": 24.7,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c4e/M2s88nALhw5ANpdYBI70L_f_011.jpg",
+    "https://v3b.fal.media/files/b/0ab22c4e/UwvHyO3cqjZ9dyKnBgd2h_f_037.jpg"
+   ]
+  },
+  "prompt": "A chunky heavy-duty arcade brass padlock with a thick silver steel U-shackle and dark keyhole on the front, slight three-quarter front view, bold cel-shaded 3D arcade game prop matching the reference frames with punchy dark ink outlines, warm brass gold body (#d5b620) and brushed steel shackle, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/padlock_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "padlock_cutout",
+  "seconds": 2.0,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c54/CFNTtXi-1j9fvUGp9w-lg_padlock_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/padlock_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "padlock",
+  "seconds": 80.5,
+  "arguments": {
+   "target_polycount": 5000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c57/xW35SlAyydgyRbKQe5xjc_padlock_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/padlock_0.glb",
+   "assets/padlock_1.png",
+   "assets/padlock_2.glb",
+   "assets/padlock_3.fbx",
+   "assets/padlock_4.obj",
+   "assets/padlock_5.usdz",
+   "assets/padlock_6.stl",
+   "assets/padlock_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "dutch_bike_concept",
+  "seconds": 23.0,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c65/7dsLA7PIxj1MOS1p5_EtK_f_004.jpg",
+    "https://v3b.fal.media/files/b/0ab22c65/8CR0poTvOJzOFYcDSROxW_f_026.jpg"
+   ]
+  },
+  "prompt": "A classic Amsterdam matte-black upright Dutch omafiets bicycle from the reference frames with a dark front crate basket, brown leather saddle, chain guard, small warm-yellow front headlight, and red rear fender light, clean three-quarter side view with thick sturdy spokes/rims suitable for 3D modeling, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/dutch_bike_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "dutch_bike_cutout",
+  "seconds": 2.8,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c6a/1qomeR6hnc2Z_osLTSyly_dutch_bike_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/dutch_bike_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "dutch_bike",
+  "seconds": 176.9,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22c6d/nZOcJlB_3-oyu8YHF08_F_dutch_bike_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/dutch_bike_0.glb",
+   "assets/dutch_bike_1.png",
+   "assets/dutch_bike_2.glb",
+   "assets/dutch_bike_3.obj",
+   "assets/dutch_bike_4.mtl",
+   "assets/dutch_bike_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "dutch_cyclist_concept",
+  "seconds": 27.2,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22c83/quuIFGZONxXLj_u63gcaI_f_030.jpg",
+    "https://v3b.fal.media/files/b/0ab22c83/uQcdXeeNbutH7oeHcY_wE_f_026.jpg"
+   ]
+  },
+  "prompt": "An Amsterdam commuter cyclist in a slate-blue raincoat jacket and dark trousers sitting upright riding a classic black Dutch bicycle with warm yellow front headlight and red rear fender light, matching the cyclist in the first reference frame, clean three-quarter front-side view, bold cel-shaded 3D arcade game art style with crisp dark ink outlines, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/dutch_cyclist_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "dutch_cyclist_cutout",
+  "seconds": 2.5,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22c8b/itz_w4R1w-zMlEjO_sIzI_dutch_cyclist_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/dutch_cyclist_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "dutch_cyclist",
+  "seconds": 178.9,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22c91/v2RoA10q-0_Vj5OlSTdpx_dutch_cyclist_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/dutch_cyclist_0.glb",
+   "assets/dutch_cyclist_1.png",
+   "assets/dutch_cyclist_2.glb",
+   "assets/dutch_cyclist_3.obj",
+   "assets/dutch_cyclist_4.mtl",
+   "assets/dutch_cyclist_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "cargo_bike_concept",
+  "seconds": 28.8,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22ca6/V5TWjhqOuTgdmqEf81xZj_f_030.jpg",
+    "https://v3b.fal.media/files/b/0ab22ca6/PS3wlxNb4x8172iY_VUB__dutch_cyclist_cutout.png"
+   ]
+  },
+  "prompt": "An Amsterdam commuter in a dark olive raincoat riding an iconic Dutch wooden front-box bakfiets cargo bike (matte black frame with a warm-brown wooden cargo box over the low front wheel and small yellow lamp housing, NO light beams or glow rays in the air), three-quarter front-side view, bold cel-shaded 3D arcade game art style with crisp dark ink outlines matching the reference images, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/cargo_bike_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "cargo_bike_cutout",
+  "seconds": 3.0,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22cae/YIWIO4-HHB5QYg7vSQ7R0_cargo_bike_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/cargo_bike_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "cargo_bike",
+  "seconds": 176.2,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22cb1/e50wlnFk43Iz22Yohq9y0_cargo_bike_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/cargo_bike_0.glb",
+   "assets/cargo_bike_1.png",
+   "assets/cargo_bike_2.glb",
+   "assets/cargo_bike_3.obj",
+   "assets/cargo_bike_4.mtl",
+   "assets/cargo_bike_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "warden_concept",
+  "seconds": 23.6,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22cca/pfbfUQ0gJBcuhftkmnxLG_f_030.jpg",
+    "https://v3b.fal.media/files/b/0ab22cca/CUpMbRpeS9iymCzGSvC5s_hero_concept.png"
+   ]
+  },
+  "prompt": "A stern Amsterdam municipal street warden (handhaving officer) character alone, full body front view, clean symmetrical A-pose with arms 35 degrees away from the body and legs straight slightly apart, wearing a bright warm safety-yellow reflective vest with silver reflective stripes over a dark navy-blue uniform jacket, dark navy trousers, dark boots, and a dark navy peaked cap (no readable text or logos), bold cel-shaded 3D arcade game character art with crisp dark ink outlines matching the reference images, even studio light, isolated on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/warden_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "warden_cutout",
+  "seconds": 2.9,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22ccf/AYZ3ZMsdZhkys-s2D_CV2_warden_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/warden_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "warden_mesh",
+  "seconds": 105.2,
+  "arguments": {
+   "pose_mode": "a-pose",
+   "target_polycount": 20000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22cd7/K5k1HG2PefETsecKJbN_Y_warden_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/warden_mesh_0.glb",
+   "assets/warden_mesh_1.png",
+   "assets/warden_mesh_2.glb",
+   "assets/warden_mesh_3.fbx",
+   "assets/warden_mesh_4.obj",
+   "assets/warden_mesh_5.usdz",
+   "assets/warden_mesh_6.stl",
+   "assets/warden_mesh_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/meshy/rigging/multi-animation",
+  "name": "warden_rig",
+  "seconds": 118.7,
+  "arguments": {
+   "animation_action_ids": [
+    30,
+    0
+   ],
+   "height_meters": 1.82,
+   "model_url": "https://v3b.fal.media/files/b/0ab22ce5/Syhu1hHf3eZrMjWiNNBjb_warden_mesh_0.glb"
+  },
+  "prompt": null,
+  "files": [
+   "assets/warden_rig_0.glb",
+   "assets/warden_rig_1.fbx",
+   "assets/warden_rig_2.glb",
+   "assets/warden_rig_3.fbx",
+   "assets/warden_rig_4.glb",
+   "assets/warden_rig_5.glb",
+   "assets/warden_rig_6.fbx",
+   "assets/warden_rig_7.glb",
+   "assets/warden_rig_8.glb",
+   "assets/warden_rig_9.fbx",
+   "assets/warden_rig_10.glb",
+   "assets/warden_rig_11.fbx"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "townhouse_a_concept",
+  "seconds": 22.2,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22cf4/b4CNvIKGZuzMpiJ3WSLH-_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22cf4/h_DYY-95gCQRRaXO2EIQU_f_016.jpg"
+   ]
+  },
+  "prompt": "A single narrow crooked 4-story historic Amsterdam brick canal townhouse building block from the reference frames, warm dark reddish-brown brick facade (#362419) with a grey stone basement plinth and sunken basement window, dark Amsterdam-green paneled front door with cream-white frame and small stone front step, tall grid windows with cream-white frames glowing warm amber-gold from interior lights, classic Dutch stepped gable roof with white stone trim, clean three-quarter front-side architectural block view, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated alone on a flat plain light grey background, no street, no trees, no floor shadow, no text.",
+  "files": [
+   "assets/townhouse_a_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "townhouse_a_cutout",
+  "seconds": 2.1,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22cfc/EGLlxOghsHzRkgpi6IXPg_townhouse_a_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/townhouse_a_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "townhouse_a",
+  "seconds": 178.2,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22d01/PXehJzqYTEwndQEguu8bp_townhouse_a_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/townhouse_a_0.glb",
+   "assets/townhouse_a_1.png",
+   "assets/townhouse_a_2.glb",
+   "assets/townhouse_a_3.obj",
+   "assets/townhouse_a_4.mtl",
+   "assets/townhouse_a_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "townhouse_b_concept",
+  "seconds": 28.0,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d18/We0jTzE1YEU-K3uv3dHnY_f_016.jpg",
+    "https://v3b.fal.media/files/b/0ab22d18/euKe7goD14amEEquUqFor_f_026.jpg",
+    "https://v3b.fal.media/files/b/0ab22d18/BkLvwG73vAnKbn3gzvKlH_townhouse_a_concept.png"
+   ]
+  },
+  "prompt": "A second narrow 4-story historic Amsterdam canal townhouse building block in warm russet terracotta-red brick (#573828) with a classic Dutch stepped gable roof (trapgevel) trimmed in cream stone and hoisting beam, grey stone basement plinth, dark green front door with white wood frame, tall grid windows glowing warm amber-orange, clean three-quarter front-side architectural block view matching the exact cel-shaded 3D arcade game art style and crisp dark ink outlines of the reference images, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/townhouse_b_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "townhouse_b_concept",
+  "seconds": 22.0,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d1f/EdHUcH3qb7ZI6KN3RNf6e_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22d1f/E5mQszkMiBR5KTpuKLuZg_f_016.jpg"
+   ]
+  },
+  "prompt": "A narrow 4-story historic Amsterdam canal house building block from the reference frames with a distinct square stair-stepped brick gable roof (Dutch trapgevel with rectangular stair steps on both roof slopes) trimmed in white stone, warm terracotta-red brick facade, grey stone basement plinth, centered cream-framed front door with green shutters, two columns of tall windows glowing warm golden-amber, three-quarter front-side architectural block view, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated alone on a flat plain light grey background, no street, no trees, no floor shadow, no text.",
+  "files": [
+   "assets/townhouse_b_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "townhouse_b_cutout",
+  "seconds": 4.0,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22d26/lK6hOASCInMidxb482gT__townhouse_b_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/townhouse_b_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "townhouse_b",
+  "seconds": 193.1,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22d2e/zIvr-rxPK13LrbdfHZHh5_townhouse_b_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/townhouse_b_0.glb",
+   "assets/townhouse_b_1.png",
+   "assets/townhouse_b_2.glb",
+   "assets/townhouse_b_3.obj",
+   "assets/townhouse_b_4.mtl",
+   "assets/townhouse_b_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "return_market_concept",
+  "seconds": 25.3,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d46/NO0s9TLOlEDNbutQO30LT_f_033.jpg",
+    "https://v3b.fal.media/files/b/0ab22d46/23vL5oxtZPX4s-LLOSDcs_f_035.jpg",
+    "https://v3b.fal.media/files/b/0ab22d46/SvQAzZMVCBfcnzsFz-eiA_f_039.jpg"
+   ]
+  },
+  "prompt": "The corner market storefront building module from the reference frames as a clean standalone 3D architectural block: vivid sky-cyan (#0ec3da) ground-floor corner walls with a recessed silver-steel rectangular bottle-and-can return chute slot centered on the front-right cyan wall face, cream-framed glass shopfront window on the left face showing colorful warm grocery shelves inside, a blank glowing ice-cyan rectangular lightbox awning sign above the shopfront (strictly NO text, NO letters, NO words), topped by two floors of dark brown Amsterdam brick with warm lit windows, three-quarter corner view, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated alone on a flat plain light grey background, no runner, no coins, no street, no floor shadow.",
+  "files": [
+   "assets/return_market_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "return_market_concept",
+  "seconds": 26.9,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d50/s1s9TYILIECWisqJE9jPT_return_market_concept.png",
+    "https://v3b.fal.media/files/b/0ab22d50/2dop3GRIw12IbGVjcBEus_townhouse_a_concept.png"
+   ]
+  },
+  "prompt": "Zoom out to show the ENTIRE complete standalone 3-story Amsterdam corner market building block from bottom base to pitched roof fully centered with wide plain light-grey margin on all four sides (nothing cropped at any edge, matching the full-building framing of the second image): ground floor has vivid sky-cyan (#0ec3da) corner walls with the recessed silver-steel rectangular bottle-return chute slot on the right cyan wall face, cream-framed glass grocery store window on the left face showing warm shelves inside, and the blank glowing ice-cyan rectangular awning lightbox sign (strictly NO text or letters), topped by two complete floors of dark brown brick with warm lit windows and a classic Dutch gable roof, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated on a flat plain light grey background, no floor shadow.",
+  "files": [
+   "assets/return_market_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "return_market_cutout",
+  "seconds": 2.8,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22d5a/SQ_8gt523ITAn6BAZEldC_return_market_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/return_market_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/hunyuan-3d/v3.1/pro/image-to-3d",
+  "name": "return_market",
+  "seconds": 198.3,
+  "arguments": {
+   "face_count": 40000,
+   "enable_pbr": true,
+   "input_image_url": "https://v3b.fal.media/files/b/0ab22d5f/asbqzW1GH0wMcutGBGu8d_return_market_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/return_market_0.glb",
+   "assets/return_market_1.png",
+   "assets/return_market_2.glb",
+   "assets/return_market_3.obj",
+   "assets/return_market_4.mtl",
+   "assets/return_market_5.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "streetlamp_concept",
+  "seconds": 24.6,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d78/QjO-kOvsPjKBEDVCXleec_f_004.jpg",
+    "https://v3b.fal.media/files/b/0ab22d78/kC3eQFv52hW_Rh9DAGa_m_f_026.jpg"
+   ]
+  },
+  "prompt": "A classic ornate historic Amsterdam canal cast-iron streetlamp post from the reference frames, dark bronze-brown fluted iron post base rising to a traditional four-sided glass lantern housing glowing warm amber-gold (#fbe8c5) inside (strictly NO light rays or glow haze painted in the surrounding air), full vertical view centered with generous margin, bold cel-shaded 3D arcade game prop with crisp dark ink outlines, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/streetlamp_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "streetlamp_cutout",
+  "seconds": 3.4,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22d7f/lN6ya6zAWn9UPbLbddj2Q_streetlamp_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/streetlamp_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "streetlamp",
+  "seconds": 140.3,
+  "arguments": {
+   "target_polycount": 8000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22d8a/aaAq6Io38O-mHq1H8oPdt_streetlamp_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/streetlamp_0.glb",
+   "assets/streetlamp_1.png",
+   "assets/streetlamp_2.glb",
+   "assets/streetlamp_3.fbx",
+   "assets/streetlamp_4.obj",
+   "assets/streetlamp_5.usdz",
+   "assets/streetlamp_6.stl",
+   "assets/streetlamp_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "bollard_concept",
+  "seconds": 22.7,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22d9d/HbL-dqfGYcMzyuRXUa7SC_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22d9e/cLHrYNvDI0laRMMx3FXch_f_016.jpg"
+   ]
+  },
+  "prompt": "An iconic Amsterdam Amsterdammertje cast-iron street bollard post: dark reddish-brown painted cylindrical tapered iron post with a rounded dome top, two raised horizontal rings, and three vertical raised white/metal XXX Saint Andrews crosses on the front shaft, slight three-quarter view, bold cel-shaded 3D arcade game prop with crisp dark ink outlines matching the reference frames, isolated alone on a flat plain light grey background, no floor shadow, no text.",
+  "files": [
+   "assets/bollard_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "bollard_cutout",
+  "seconds": 2.1,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "image_url": "https://v3b.fal.media/files/b/0ab22da7/DGNYDhEB7ejYWUzmsh5fl_bollard_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/bollard_cutout.png"
+  ]
+ },
+ {
+  "endpoint": "meshy/v7.1/image-to-3d",
+  "name": "bollard",
+  "seconds": 170.4,
+  "arguments": {
+   "target_polycount": 5000,
+   "symmetry_mode": "on",
+   "image_url": "https://v3b.fal.media/files/b/0ab22dac/a2mqBWnjpGESwm-GjCvyw_bollard_cutout.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/bollard_0.glb",
+   "assets/bollard_1.png",
+   "assets/bollard_2.glb",
+   "assets/bollard_3.fbx",
+   "assets/bollard_4.obj",
+   "assets/bollard_5.usdz",
+   "assets/bollard_6.stl",
+   "assets/bollard_7.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "tex_wet_brick",
+  "seconds": 33.7,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "2K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22dc3/9-uP__eTe6APn3AVGquWw_f_016.jpg",
+    "https://v3b.fal.media/files/b/0ab22dc3/87riggPIFMRmKhoH0IOXv_f_030.jpg"
+   ]
+  },
+  "prompt": "Seamless tileable texture, strict top-down orthographic view, wet historic Amsterdam reddish-brown clinker brick pavement in classic herringbone bond (#473529 and #573828) with dark damp mortar joints and a few tiny scattered wet yellow-green elm leaves, flat even overcast studio lighting, no directional shadows, no perspective distortion, cel-shaded painted game texture matching the reference frames.",
+  "files": [
+   "assets/tex_wet_brick.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "tex_quay_stone",
+  "seconds": 24.2,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22dd2/_BtdYdQKgTeB_Xuet9hj9_f_016.jpg"
+   ]
+  },
+  "prompt": "Seamless tileable texture, strict top-down orthographic view, wet weathered dark-grey Amsterdam canal granite quay coping stones and curb blocks (#525659) with subtle moss and damp joints, completely uniform flat lighting across the entire square, no shadows, no perspective, cel-shaded painted game texture matching the reference frame.",
+  "files": [
+   "assets/tex_quay_stone.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "tex_wet_brick",
+  "seconds": 30.7,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "2K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22dda/Mqi8_Sc6ImwwGJdSi7MxJ_f_016.jpg",
+    "https://v3b.fal.media/files/b/0ab22dda/GyK1BM-7asrHIehZJCR3y_tex_quay_stone.webp"
+   ]
+  },
+  "prompt": "Seamless 4-way tileable diffuse albedo texture, strict top-down orthographic view, historic Amsterdam dark russet reddish-brown clinker bricks in classic herringbone pattern (#473529 and #573828) with dark mortar joints and a few tiny scattered yellow-green elm leaves, COMPLETELY UNIFORM FLAT LIGHTING across the entire square from edge to edge, strictly NO specular glare patches, NO brightness gradient between left and right edges, NO shadows, NO perspective, cel-shaded painted game texture.",
+  "files": [
+   "assets/tex_wet_brick.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "tex_water_normal",
+  "seconds": 23.6,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22dee/gGwmp-0jTeGLqqrVGqMGc_f_001.jpg"
+   ]
+  },
+  "prompt": "Seamless tileable orthographic top-down game water ripple texture matching the rainy night canal water style of the reference image: deep dark slate-umber water (#17140f to #252b34) with soft overlapping concentric raindrop rings and gentle stylized cel-shaded canal wave ripples, completely uniform flat lighting edge-to-edge so it tiles seamlessly in X and Y with zero bright spots, zero perspective, no objects, no text.",
+  "files": [
+   "assets/tex_water_normal.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "sky_amsterdam_night",
+  "seconds": 33.8,
+  "arguments": {
+   "aspect_ratio": "21:9",
+   "resolution": "2K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22df9/hfjIRZbukMFQkkfqJueuo_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22df9/TY35Td5uh7-iaq8HoKLb8_f_016.jpg"
+   ]
+  },
+  "prompt": "Horizontally seamless panoramic sky backdrop in the exact cel-shaded ink-outlined rainy night style and palette of the reference images: overcast slate-blue Amsterdam night rain clouds (#586170) across the upper two-thirds, softly melting down into misty warm-slate atmospheric canal fog (#58585c) along the lower horizon with faint distant silhouettes of Amsterdam canal gables and an arched stone canal bridge glowing softly in the mist. No street foreground, no characters, no bright moon, no text, matching left and right edges.",
+  "files": [
+   "assets/sky_amsterdam_night.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "canal_tree_concept",
+  "seconds": 22.9,
+  "arguments": {
+   "aspect_ratio": "3:4",
+   "resolution": "1K",
+   "output_format": "png",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22e01/J6Dcj36_7c2ZuiS3Krixo_f_001.jpg",
+    "https://v3b.fal.media/files/b/0ab22e01/q1c7rkf9wgrOdK95Kh6Dx_f_016.jpg"
+   ]
+  },
+  "prompt": "Single standalone tall slender Amsterdam canal elm tree in the exact bold cel-shaded ink-outline 3D game style of the reference images: straight dark-brown bark trunk from flat base up into graceful arching branches with airy clusters of rain-damp muted olive-sage and russet-yellow autumn elm leaves, Punchy dark ink outlines, complete full tree from trunk base to top crown with generous margin on all four sides, isolated on a completely flat solid pure white (#ffffff) background, no ground plane, no cast shadow, no text.",
+  "files": [
+   "assets/canal_tree_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "canal_tree_cutout",
+  "seconds": 2.7,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "output_format": "webp",
+   "image_url": "https://v3b.fal.media/files/b/0ab22e08/rAeqHT5p5nW5WEMy9zlZS_canal_tree_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/canal_tree_cutout.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "sprite_coin_concept",
+  "seconds": 22.7,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "output_format": "png",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22e0e/L7VLYJu_vPa-h_mRpuHLM_f_037.jpg"
+   ]
+  },
+  "prompt": "Single large chunky arcade golden coin centered on a completely flat solid neutral grey (#dcdcdc) background, in the exact bold cel-shaded ink-outline 3D game style of the golden coins in the reference image: warm bright gold (#ffdf38) and rich amber-gold shading (#d5b620), thick beveled rim with crisp white specular glint and punchy black ink outline, simple embossed four-point star shape in the center, strictly NO text, NO numbers, NO letters, NO cast shadow.",
+  "files": [
+   "assets/sprite_coin_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "sprite_coin_cutout",
+  "seconds": 2.2,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "output_format": "webp",
+   "image_url": "https://v3b.fal.media/files/b/0ab22e28/NR8d8Q_jBnygi596ksDwt_sprite_coin_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sprite_coin_cutout.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "sprite_litter_concept",
+  "seconds": 24.4,
+  "arguments": {
+   "aspect_ratio": "1:1",
+   "resolution": "1K",
+   "output_format": "png",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22e2b/6O6CrYJNw0v5sNy53DnNV_f_004.jpg",
+    "https://v3b.fal.media/files/b/0ab22e2b/UFCj7Mm4tqF8XQgldHnzq_f_011.jpg"
+   ]
+  },
+  "prompt": "Clean 2x2 game particle sprite atlas of four separate colorful street litter items centered neatly in the four quadrants with generous spacing between them, in the exact bold cel-shaded ink-outline 3D game style of the reference images: top-left crushed orange carton, top-right crumpled red-and-gold foil wrapper, bottom-left squashed cream-and-teal paper cup, bottom-right crumpled bright-blue paper wrapper. Thick black ink outlines, completely flat solid neutral grey (#dcdcdc) background, NO grid lines, NO borders, NO cast shadows, NO text or letters.",
+  "files": [
+   "assets/sprite_litter_concept.png"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/birefnet/v2",
+  "name": "sprite_litter_cutout",
+  "seconds": 2.1,
+  "arguments": {
+   "model": "General Use (Heavy)",
+   "operating_resolution": "1024x1024",
+   "output_format": "webp",
+   "image_url": "https://v3b.fal.media/files/b/0ab22e30/9Skclbxn5wQoSo3mo3yk1_sprite_litter_concept.png"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sprite_litter_cutout.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/nano-banana-pro/edit",
+  "name": "tex_neon_streak",
+  "seconds": 21.9,
+  "arguments": {
+   "aspect_ratio": "16:9",
+   "resolution": "1K",
+   "output_format": "webp",
+   "image_urls": [
+    "https://v3b.fal.media/files/b/0ab22e33/2pJQHhwh5Azti88i0IPtf_f_041.jpg"
+   ]
+  },
+  "prompt": "Additive VFX game ribbon texture on a completely pure solid pitch-black (#000000) background, matching the neon speed-blur trail in the reference image: vivid electric magenta (#fa62fb) and glowing sky-cyan (#7be7fc) horizontal anime arcade speed-lines and energy ribbon running horizontally through the middle, fading smoothly to pure #000000 black well before the top, bottom, left, and right edges so there is zero hard border. No characters, no street, no buildings, no text.",
+  "files": [
+   "assets/tex_neon_streak.webp"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_rain_ambience",
+  "seconds": 5.9,
+  "arguments": {
+   "loop": true,
+   "duration_seconds": 10,
+   "text": "Rainy night canal street ambience in Amsterdam, steady soft rain pattering on wet brick cobblestones and gentle canal water lapping"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_rain_ambience.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_footstep",
+  "seconds": 5.0,
+  "arguments": {
+   "duration_seconds": 0.6,
+   "text": "Single crisp sneaker footstep splash on wet brick pavement"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_footstep.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_hop",
+  "seconds": 3.9,
+  "arguments": {
+   "duration_seconds": 0.7,
+   "text": "Quick athletic hoodie cloth whoosh jump off wet cobblestones"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_hop.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_footstep",
+  "seconds": 4.2,
+  "arguments": {
+   "duration_seconds": 0.8,
+   "text": "Loud crisp rubber sneaker step splashing on a wet brick puddle, close-up foley impact"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_footstep.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_bin_bash",
+  "seconds": 5.2,
+  "arguments": {
+   "duration_seconds": 1.2,
+   "text": "Punchy arcade metallic street trash bin bash impact and heavy hinged metal door swinging open clang"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_bin_bash.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_charge_hum",
+  "seconds": 3.5,
+  "arguments": {
+   "duration_seconds": 1.0,
+   "text": "Rising arcade power charge synth whoosh hum"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_charge_hum.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_padlock_break",
+  "seconds": 3.8,
+  "arguments": {
+   "duration_seconds": 1.2,
+   "text": "Heavy steel padlock shattering and metallic burst clang"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_padlock_break.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_can_pickup",
+  "seconds": 4.2,
+  "arguments": {
+   "duration_seconds": 0.8,
+   "text": "Hollow aluminum soda cans whooshing and clinking into a woven nylon shopping bag"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_can_pickup.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_bike_bell",
+  "seconds": 4.2,
+  "arguments": {
+   "duration_seconds": 1.0,
+   "text": "Classic Dutch bicycle crisp double ring-ring bell"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_bike_bell.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_warden_whistle",
+  "seconds": 3.5,
+  "arguments": {
+   "duration_seconds": 1.0,
+   "text": "Sharp municipal officer warning pea-whistle blast"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_warden_whistle.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_cashin_turbo",
+  "seconds": 6.0,
+  "arguments": {
+   "duration_seconds": 2.8,
+   "text": "Arcade bottle return machine slam erupting in cascading gold coins jackpot and vivid neon synth turbo speed boost whoosh"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_cashin_turbo.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_canal_splash",
+  "seconds": 3.7,
+  "arguments": {
+   "duration_seconds": 1.8,
+   "text": "Big comic water plunge splash into a deep canal"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_canal_splash.mp3"
+  ]
+ },
+ {
+  "endpoint": "elevenlabs/music/v2.5",
+  "name": "music_chase",
+  "seconds": 10.6,
+  "arguments": {
+   "force_instrumental": true,
+   "music_length_ms": 60000
+  },
+  "prompt": "Upbeat nocturnal arcade synth-funk chase soundtrack, punchy slap bassline, tight breakbeat drums, warm analog synth hooks, rainy European night street atmosphere, energetic loopable video game music",
+  "files": [
+   "assets/music_chase.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_lockpick",
+  "seconds": 4.3,
+  "arguments": {
+   "duration_seconds": 1.8,
+   "text": "Close-up rapid metallic lockpick tension wrench ratcheting and steel padlock pins clicking swiftly"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_lockpick.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_cash_register",
+  "seconds": 5.6,
+  "arguments": {
+   "duration_seconds": 1.6,
+   "text": "Satisfying supermarket bottle return machine rapid aluminum can scan beeps followed by bright golden euro coins cascading and cash register cha-ching"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_cash_register.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_upgrade_buy",
+  "seconds": 10.9,
+  "arguments": {
+   "duration_seconds": 1.0,
+   "text": "Crisp upbeat arcade shop gear upgrade purchase coin clink and positive synth level-up chime"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_upgrade_buy.mp3"
+  ]
+ },
+ {
+  "endpoint": "fal-ai/elevenlabs/sound-effects/v2",
+  "name": "sfx_busted",
+  "seconds": 4.8,
+  "arguments": {
+   "duration_seconds": 1.3,
+   "text": "Urgent double police pea-whistle blast followed by quick metallic handcuff latch click, arcade busted sound effect"
+  },
+  "prompt": null,
+  "files": [
+   "assets/sfx_busted.mp3"
+  ]
+ }
+]
